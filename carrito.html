@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Servicios</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Canidad</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="datosServicios"></tbody>
+    </table>
+
+    <h1>Productos</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Precio</th>
+          <th>Canidad</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="datosProductos"></tbody>
+    </table>
+    <div>
+      $
+      <h2 id="total"></h2>
+      <button onclick="enviarCompra()">CONFIRMAR COMPRA</button>
+    </div>
+    <script>
+      function enviarCompra() {
+        if (confirm("Seguro de realizar toda su compra?")) {
+          const data = {
+            total: Number(document.getElementById("total").innerHTML),
+            servicios: JSON.parse(localStorage.getItem("servicios")),
+            productos: JSON.parse(localStorage.getItem("productos")),
+          };
+
+          // const formData = new FormData(form);
+          fetch("controlador/venta_c.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          })
+            .then((res) => res.json())
+            .then((respuesta) => {
+              console.log("ID de venta generado:", respuesta.id_venta);
+              if (respuesta.status == "ok") {
+                alert("Su solicitud fue registrada con exito");
+                localStorage.removeItem("servicios");
+                localStorage.removeItem("productos");
+                mostrarDatos();
+              }
+            })
+            .catch((error) => {
+              //   alert("Error al enviar la compra.");
+              //   console.error(error);
+            });
+          window.location.reload;
+        }
+      }
+
+      function mostrarDatos() {
+        let total = 0;
+        let servicios = localStorage.getItem("servicios");
+        servicios = JSON.parse(servicios);
+        console.log(servicios);
+
+        let dataS = "";
+        if (servicios != null) {
+          servicios.forEach((val) => {
+            total += Number(val.subtotal);
+            dataS += `
+            <tr>
+            <td>${val.nombre}</td>
+            <td>$${val.precio}</td>
+            <td><input type="number" onChange="cambiarSubtotalS(event, '${val.id}')" value="${val.cantidad}"></td>
+            <td>$${val.subtotal}</td>
+            <td><input type="button" onClick="quitarS(event, '${val.id}')" value="X"></td>
+            
+            </tr>
+            `;
+          });
+          document.getElementById("datosServicios").innerHTML = dataS;
+        }
+
+        //------
+
+        let productos = localStorage.getItem("productos");
+        productos = JSON.parse(productos);
+        let dataP = "";
+        if (productos != null) {
+          productos.forEach((val) => {
+            total += Number(val.subtotal);
+            dataP += `
+            <tr>
+            <td>${val.nombre}</td>
+            <td>$${val.precio}</td>
+            <td><input type="number" onChange="cambiarSubtotalP(event, '${val.id}')" value="${val.cantidad}"></td>
+            <td>$${val.subtotal}</td>
+            <td><input type="button" onClick="quitarP(event, '${val.id}')" value="X"></td>
+            </tr>
+            `;
+          });
+          document.getElementById("datosProductos").innerHTML = dataP;
+        }
+        document.getElementById("total").innerHTML = total;
+      }
+
+      function cambiarSubtotalP(event, id) {
+        event.preventDefault();
+        let cant = event.target.value;
+        let prods = localStorage.getItem("productos");
+        prods = JSON.parse(prods);
+
+        let prodsActualizados = prods.map((prod) => {
+          if (prod.id === id) {
+            let subt = Number(cant) * Number(prod.precio);
+            return { ...prod, cantidad: Number(cant), subtotal: subt };
+          }
+          return prod;
+        });
+        prodsActualizados = JSON.stringify(prodsActualizados);
+        localStorage.setItem("productos", prodsActualizados);
+
+        mostrarDatos();
+      }
+
+      function quitarP(event, id) {
+        event.preventDefault();
+        let prods = JSON.parse(localStorage.getItem("productos"));
+
+        const index = prods.findIndex((prod) => prod.id == id);
+        console.log(index);
+
+        if (index != -1) {
+          prods.splice(index, 1);
+        }
+        localStorage.setItem("productos", JSON.stringify(prods));
+
+        mostrarDatos();
+      }
+
+      function quitarS(event, id) {
+        event.preventDefault();
+        let servs = JSON.parse(localStorage.getItem("servicios"));
+
+        const index = servs.findIndex((serv) => serv.id == id);
+        console.log(index);
+
+        if (index != -1) {
+          servs.splice(index, 1);
+        }
+        localStorage.setItem("servicios", JSON.stringify(servs));
+
+        mostrarDatos();
+      }
+      function cambiarSubtotalS(event, id) {
+        event.preventDefault();
+        let cant = event.target.value;
+        let servs = localStorage.getItem("servicios");
+        servs = JSON.parse(servs);
+
+        let servsActualizados = servs.map((serv) => {
+          if (serv.id === id) {
+            let subt = Number(cant) * Number(serv.precio);
+            return { ...serv, cantidad: Number(cant), subtotal: subt };
+          }
+          return serv;
+        });
+        servsActualizados = JSON.stringify(servsActualizados);
+        localStorage.setItem("servicios", servsActualizados);
+
+        mostrarDatos();
+      }
+
+      mostrarDatos();
+      //   if (servicios.length > 0) {
+
+      //   }
+    </script>
+  </body>
+</html>
