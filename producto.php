@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 include 'conexion.php';
 
 
@@ -40,10 +42,7 @@ $result = $conn->query($sql);
                     <div class="search-toggle">
                         <i class="fas fa-search"></i>
                     </div>
-                    <a href="#" class="cart-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="cart-count">0</span>
-                    </a>
+                  <a class="cart-icon" href="carrito.php"> <i class="fas fa-shopping-cart"></i>  <span id="cantidad-carrito" class="cart-count">0</span></a>
                     <div class="mobile-menu-btn">
                         <i class="fas fa-bars"></i>
                     </div>
@@ -139,7 +138,7 @@ $result = $conn->query($sql);
 
     <!-- Campos ocultos requeridos por pedidos -->
     <input type="hidden" name="nombre" value="<?= htmlspecialchars($row['titulo']) ?>">
-  <input id="code" type="hidden" name="codigo_pedido">
+    <input type="hidden" name="id_usuario" value="<?= $_SESSION['id_usuario'] ?>">
     <input type="hidden" name="tipo" value="producto"> <!-- o 'servicio' según el caso -->
     <input type="hidden" name="precio" value="<?= $row['precio'] ?>">
 
@@ -151,9 +150,11 @@ $result = $conn->query($sql);
     </div>
 
     <div class="action-buttons">
-        <button type="button" class="btn btn-primary add-to-cart">
-            <i class="fas fa-shopping-cart"></i> Añadir al carrito
-        </button>
+        <button type="button" class="btn btn-primary add-to-cart"
+        onclick="agregarProducto(event, '<?php echo $row['id']; ?>', '<?php echo $row['titulo']; ?>', '<?php echo $row['precio']; ?>')">
+    <i class="fas fa-shopping-cart"></i> Añadir al carrito
+</button>
+
 
         <button type="button" class="btn btn-secondary buy-now" id="buyNowBtn">
             <i class="fab fa-whatsapp"></i> Comprar ahora
@@ -297,10 +298,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const quantityInput = document.getElementById("quantity");
   const totalPriceElement = document.querySelector(".total-price");
   const precioUnitario = parseFloat(totalPriceElement?.getAttribute("data-precio") || 0);
-  const addToCartBtn = document.querySelector(".add-to-cart");
+
   const buyNowBtn = document.querySelector("#buyNowBtn");
   const qtyBtns = document.querySelectorAll(".qty-btn");
-  const cartCount = document.querySelector(".cart-count");
+  
 
   // Actualiza el total según cantidad
   function updatePrice() {
@@ -340,38 +341,113 @@ document.addEventListener("DOMContentLoaded", function () {
     updatePrice();
   });
 
-  // Añadir al carrito (opcional visual)
-  addToCartBtn?.addEventListener("click", () => {
-    const cantidad = parseInt(quantityInput.value || 1);
-    const current = parseInt(cartCount?.textContent || 0);
-    if (cartCount) cartCount.textContent = current + cantidad;
-    alert(`Se añadieron ${cantidad} productos al carrito.`);
-  });
-
   // Comprar ahora
-  buyNowBtn?.addEventListener("click", function () {
-    const form = document.getElementById("form-compra");
-    const formData = new FormData(form);
+// Comprar ahora
+buyNowBtn?.addEventListener("click", function () {
+  const form = document.getElementById("form-compra");
+  const formData = new FormData(form);
 
-    fetch(form.action, {
-      method: "POST",
-      body: formData,
+  fetch(form.action, {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => {
+      try {
+        return response.json(); // Asegura que sea JSON
+      } catch (e) {
+        throw new Error("Respuesta no válida");
+      }
     })
-      .then((response) => response.text())
-      .then((data) => {
-        document.getElementById("mensaje").innerText = data;
-      })
-      .catch((error) => {
-        document.getElementById("mensaje").innerText =
-          "Error al registrar el pedido.";
-        console.error(error);
-      });
-  });
+    .then((data) => {
+      if (data.success) {
+        const cantidad = document.getElementById("quantity").value;
+        const nombre = form.querySelector('input[name="nombre"]').value;
+        const precio = form.querySelector('input[name="precio"]').value;
+        const tipo = form.querySelector('input[name="tipo"]').value;
+        const id_usuario = form.querySelector('input[name="id_usuario"]')?.value || "no identificado";
+        const total = cantidad * precio;
+
+        const mensaje = `Hola, soy el usuario *#${id_usuario}* y quiero comprar *${cantidad} ${nombre}* (${tipo}) por un total de *$${total.toLocaleString('es-CO')} COP*`;
+        const telefono = "573001112233"; // <-- cambia por tu número real
+
+        const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.location.href = url;
+      } else {
+        document.getElementById("mensaje").innerText = "Error al registrar el pedido.";
+      }
+    })
+    .catch((error) => {
+      console.error("Error en la petición:", error);
+      document.getElementById("mensaje").innerText = "Error al registrar el pedido.";
+    });
+});
+
+
+
 
   // Cálculo inicial
   updatePrice();
 });
 </script>
+
+   <script>
+                    function cantidadCarro() {
+                        let p = JSON.parse(localStorage.getItem("productos"));
+                        if (p==null){
+                            p=0
+                        }else{
+                            p=p.length
+                        }
+
+                        let s = JSON.parse(localStorage.getItem("servicios"));                        
+                        if (s==null){
+                            s=0
+                        }else{
+                            s=s.length
+                        }
+                        let cant = p + s;
+                        document.getElementById("cantidad-carrito").innerHTML = cant;
+                    }
+                    cantidadCarro();
+                </script>
+
+<script>
+function agregarProducto(event, id, nombre, precio) {
+    event.preventDefault();
+
+    let productos = JSON.parse(localStorage.getItem("productos"));
+    if (!productos) productos = [];
+
+    let existe = productos.some(p => parseInt(p.id) === parseInt(id));
+    if (existe) {
+        alert("¡Este producto ya está en el carrito!");
+        return;
+    }
+
+    const cantidad = parseInt(document.getElementById("quantity").value);
+    const subtotal = precio * cantidad;
+
+    const producto = {
+        id: parseInt(id),
+        nombre: nombre,
+        cantidad: cantidad,
+        precio: parseFloat(precio),
+        subtotal: subtotal
+    };
+
+    productos.push(producto);
+    localStorage.setItem("productos", JSON.stringify(productos));
+
+    // ✅ Llamar a la función para actualizar la vista del carrito
+    cantidadCarro();
+
+    // ❌ Solo si realmente necesitas recargar (por ejemplo, si hay cambios visuales fuera del contador)
+    // window.location.reload();
+}
+
+</script>
+
+
 
 
   <script src="assets/js/producto.js">

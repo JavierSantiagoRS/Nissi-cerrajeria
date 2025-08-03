@@ -4,7 +4,7 @@ include 'conexion.php';
 include 'controlador/buzon_c.php';
 
 
-$sql = "SELECT * FROM inventario";
+  $sql = "SELECT * FROM inventario LIMIT 3";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -24,27 +24,8 @@ $result = $conn->query($sql);
                 <div class="logo">
                     <img src="assets\img\logo.jpg" alt="NISSI Cerrajería">
                 </div>
-                <a href="carrito.php">Carrito <span id="cantidad-carrito" style="color: red"></span></a>
-                <script>
-                    function cantidadCarro() {
-                        let p = JSON.parse(localStorage.getItem("productos"));
-                        if (p==null){
-                            p=0
-                        }else{
-                            p=p.length
-                        }
-
-                        let s = JSON.parse(localStorage.getItem("servicios"));                        
-                        if (s==null){
-                            s=0
-                        }else{
-                            s=s.length
-                        }
-                        let cant = p + s;
-                        document.getElementById("cantidad-carrito").innerHTML = cant;
-                    }
-                    cantidadCarro();
-                </script>
+               
+           
                 <nav class="main-nav">
                     <ul>
                         <li><a href="#inicio" class="active">Inicio</a></li>
@@ -53,6 +34,7 @@ $result = $conn->query($sql);
                         <li><a href="#galeria">Galería</a></li>
                         <li><a href="#contacto">Contacto</a></li>
                         <li><a href="vistas\login.php">Perfil</a></li>
+                        <li> <a class="cart-icon" href="carrito.php"> <i class="fas fa-shopping-cart"></i>  <span id="cantidad-carrito" class="cart-count">0</span></a></li>
                     </ul>
                 </nav>
                 <div class="mobile-menu-btn">
@@ -91,7 +73,7 @@ $result = $conn->query($sql);
 
     <div class="services-grid">
     <?php
-    $sql = "SELECT * FROM servicios";
+     $sql = "SELECT * FROM servicios LIMIT 3";
     $resultado = $conn->query($sql);
 
     if ($resultado && $resultado->num_rows > 0) {
@@ -114,7 +96,11 @@ $result = $conn->query($sql);
             $mensaje = "Hola, estoy interesado en su servicio de {$servicio["nombre"]}, por un precio de $" . number_format($servicio["precio"], 0, ',', '.') . " COP, ¿Podría darme más información?";
             $urlWA = "https://wa.me/573176039806?text=" . urlencode($mensaje);
 
-            echo '<a href="#" class="service-link" onclick="enviarFormularioYRedirigir(event, \'' . $servicio["id"] . '\', \'' . $servicio["nombre"] . '\', \'' . $servicio["precio"] . '\')">Agregar <i class=\'fas fa-arrow-right\'></i></a>';
+             echo '<button type="button" class="service-link solicitar" onclick="enviarYRedirigirWhatsApp(\'' . $formId . '\', \'' . $urlWA . '\')">Solicitar <i class=\'fas fa-arrow-right\'></i></button>';
+
+            echo '<a href="#" class="service-link" onclick="enviarFormularioYRedirigir(event, \'' . $servicio["id"] . '\', \'' . $servicio["nombre"] . '\', \'' . $servicio["precio"] . '\')">Agregar al Carrito</a>';
+           
+
             echo '</form>';
         }
     } else {
@@ -122,60 +108,12 @@ $result = $conn->query($sql);
     }
     ?>
 </div>
-
-<script>
-function enviarFormularioYRedirigir(event, id, nombre, precio) {
-    event.preventDefault(); // Evita que el enlace se abra de inmediato
-    let servicios = JSON.parse(localStorage.getItem("servicios"));
-    if (servicios == null) {
-        servicios = []
-    }
-
-    let validoExistencia = false;
-    servicios.forEach((val) => {
-        if (val.id == id) {
-            validoExistencia = true;
-        }
-    });
-    if(validoExistencia){
-        alert("UPPS: este producto ya fue agregado");
-            return;
-    }
-
-    const servicio = {
-        'id': id,
-        'nombre': nombre,
-        'cantidad': 1,
-        'precio': precio,
-        'subtotal': precio
-    };
-    servicios.push(servicio);
-    
-    servicios = JSON.stringify(servicios);
-    localStorage.setItem('servicios',servicios.toString())  
-
-    cantidadCarro();
-    // const form = document.getElementById(formId);
-
-    // // Envía el formulario usando fetch (sin recargar la página)
-    // const formData = new FormData(form);
-    // fetch(form.action, {
-    //     method: "POST",
-    //     body: formData
-    // }).then(() => {
-    //     // Después de guardar, redirige a WhatsApp
-    //     window.open(whatsappUrl, "_blank");
-    // }).catch(error => {
-    //     alert("Error al enviar el formulario.");
-    //     console.error(error);
-    // });
-}
-</script>
-
+    <div class="recent-services">
+                            <div class="section-header-small">
+                                <a href="servicios.php" class="view-all" data-section="services">Ver Todo <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                            <div class="services-list">
 </section>
-
-
-
 
 
 
@@ -349,8 +287,10 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
         </div>
         <div class="gallery-grid">
     <?php
+
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
+            
             echo '<a href="producto.php?id=' . $row["id"] . '" class="gallery-item">';
             echo '    <img src="assets/' . htmlspecialchars($row["imagen"]) . '" alt="' . htmlspecialchars($row["titulo"]) . '">';
             echo '    <div class="gallery-overlay">';
@@ -358,7 +298,7 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
             echo '        <h3>$' . number_format($row["precio"], 0, ',', '.') . ' COP</h3>';
             echo '    </div>';
             echo '</a>';
-            echo '<a href="#" class="service-link" onclick="agregarProducto(event, \'' . $row["id"] . '\', \'' . $row["titulo"] . '\', \'' . $row["precio"] . '\')">Agregar <i class=\'fas fa-arrow-right\'></i></a>';
+         
 
         }
     } else {
@@ -367,6 +307,11 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
  
     ?>
         </div>
+          <div class="recent-services">
+                            <div class="section-header-small">
+                                <a href="inventario.php" class="view-all" data-section="services">Ver Todo <i class="fas fa-arrow-right"></i></a>
+                            </div>
+                            <div class="services-list">
     </div>
 </section>
 
@@ -586,6 +531,7 @@ function agregarProducto(event, id, nombre, precio) {
     <!-- JavaScript -->
     <script src="assets/js/cliente.js"></script>
 <script>
+    
 document.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("message");
   const counter = document.getElementById("messageCounter");
@@ -596,6 +542,101 @@ document.addEventListener("DOMContentLoaded", function () {
     counter.textContent = `${restante} caracteres restantes`;
   });
 });
+</script>
+
+<script>
+function enviarFormularioYRedirigir(event, id, nombre, precio) {
+    event.preventDefault(); // Evita que el enlace se abra de inmediato
+    let servicios = JSON.parse(localStorage.getItem("servicios"));
+    if (servicios == null) {
+        servicios = []
+    }
+
+    let validoExistencia = false;
+    servicios.forEach((val) => {
+        if (val.id == id) {
+            validoExistencia = true;
+        }
+    });
+    if(validoExistencia){
+        alert("Ups! este servicio ya fue agregado");
+            return;
+    }
+
+    const servicio = {
+        'id': id,
+        'nombre': nombre,
+        'cantidad': 1,
+        'precio': precio,
+        'subtotal': precio
+    };
+    servicios.push(servicio);
+    
+    servicios = JSON.stringify(servicios);
+    localStorage.setItem('servicios',servicios.toString())  
+
+    cantidadCarro();
+    // const form = document.getElementById(formId);
+
+    // // Envía el formulario usando fetch (sin recargar la página)
+    // const formData = new FormData(form);
+    // fetch(form.action, {
+    //     method: "POST",
+    //     body: formData
+    // }).then(() => {
+    //     // Después de guardar, redirige a WhatsApp
+    //     window.open(whatsappUrl, "_blank");
+    // }).catch(error => {
+    //     alert("Error al enviar el formulario.");
+    //     console.error(error);
+    // });
+}
+</script>
+     <script>
+                    function cantidadCarro() {
+                        let p = JSON.parse(localStorage.getItem("productos"));
+                        if (p==null){
+                            p=0
+                        }else{
+                            p=p.length
+                        }
+
+                        let s = JSON.parse(localStorage.getItem("servicios"));                        
+                        if (s==null){
+                            s=0
+                        }else{
+                            s=s.length
+                        }
+                        let cant = p + s;
+                        document.getElementById("cantidad-carrito").innerHTML = cant;
+                    }
+                    cantidadCarro();
+                </script>
+
+                <script>
+function enviarYRedirigirWhatsApp(formId, urlWA) {
+    const form = document.getElementById(formId);
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            // Espera medio segundo y luego redirige a WhatsApp
+            setTimeout(() => {
+                window.open(urlWA, '_blank');
+            }, 500);
+        } else {
+            alert('Error al registrar la solicitud.');
+        }
+    })
+    .catch(error => {
+        console.error('Error en la solicitud:', error);
+        alert('No se pudo registrar la venta.');
+    });
+}
 </script>
 
 

@@ -156,25 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const buyNowBtn = document.querySelector(".buy-now");
   const cartCount = document.querySelector(".cart-count");
 
-  addToCartBtn?.addEventListener("click", () => {
-    const quantity = Number.parseInt(quantityInput?.value || 1);
-    const selectedColor = document.querySelector(
-      'input[name="color"]:checked'
-    )?.value;
-    const installation = document.querySelector(
-      'input[name="installation"]:checked'
-    )?.value;
-
-    // Update cart count
-    const currentCount = Number.parseInt(cartCount?.textContent || 0);
-    if (cartCount) {
-      cartCount.textContent = currentCount + quantity;
-    }
-
-    // Show success message
-    showNotification("Producto añadido al carrito", "success");
-  });
-
   buyNowBtn?.addEventListener("click", () => {
     showNotification("Redirigiendo al checkout...", "info");
     // Simulate redirect
@@ -283,21 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Related Products
   const quickAddBtns = document.querySelectorAll(".quick-add");
-
-  quickAddBtns.forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const productCard = this.closest(".product-card");
-      const productName = productCard.querySelector("h3").textContent;
-
-      // Update cart count
-      const currentCount = Number.parseInt(cartCount?.textContent || 0);
-      if (cartCount) {
-        cartCount.textContent = currentCount + 1;
-      }
-
-      showNotification(`${productName} añadido al carrito`, "success");
-    });
-  });
 
   // Mobile menu
   const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
@@ -430,15 +396,6 @@ document.addEventListener("DOMContentLoaded", () => {
       el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
       observer.observe(el);
     });
-});
-
-document.querySelector(".add-to-cart").addEventListener("click", function () {
-  const cantidad = document.getElementById("quantity").value;
-  alert(`Se añadieron ${cantidad} unidades al carrito.`);
-
-  // Aquí puedes hacer una petición AJAX o redirigir a carrito.php
-  // Ejemplo con redirección:
-  // window.location.href = `carrito.php?inventario_id=<?= $row['id'] ?>&cantidad=${cantidad}`;
 });
 
 document

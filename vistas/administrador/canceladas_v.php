@@ -8,12 +8,12 @@ if (!isset($_SESSION["id_usuario"])) {
 
 
 include '../../conexion.php';
-include '../../modelos/pedido_m.php';
+include '../../controlador/canceladas_c.php';
 
+$ventas = obtenerVentascanceladas($conn);
 
-$pedidos = obtenerPedidos($conn);
-$sql_pedidos = "SELECT COUNT(*) AS total FROM pedidos";
-$total_pedidos = $conn->query($sql_pedidos)->fetch_assoc()['total'];
+$sql_ventas_canceladas = "SELECT COUNT(*) AS total FROM ventas WHERE estado = 'cancelada'";
+$total_ventas = $conn->query($sql_ventas_canceladas)->fetch_assoc()['total'];
 
 ?>
 <!DOCTYPE html>
@@ -22,7 +22,7 @@ $total_pedidos = $conn->query($sql_pedidos)->fetch_assoc()['total'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes - NISSI Cerrajería</title>
-    <link rel="stylesheet" href="../../assets/css/admin/pedido.css">
+    <link rel="stylesheet" href="../../assets/css/admin/venta.css">
     <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.bundle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -38,16 +38,16 @@ $total_pedidos = $conn->query($sql_pedidos)->fetch_assoc()['total'];
             </div>
             <div class="sidebar-menu">
                 <ul>
-                    <li ><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li class="active"><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
-    <li><a href="venta_v.php"><i class="fas fa-tools"></i>Ventas</a></li>
-    <li> <a href="pendientes_v.php"><i class="fas fa-tools"></i>Ventas Pendientes</a></li>
-      <li> <a href="confirmadas_v.php"><i class="fas fa-tools"></i>Ventas Confirmadas</a></li>
-        <li> <a href="canceladas_v.php"><i class="fas fa-tools"></i>Ventas Canceladas</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+    <li > <a href="venta_v.php"><i class="fas fa-tools"></i>Ventas</a></li>
+     <li> <a href="pendientes_v.php"><i class="fas fa-tools"></i>Ventas Pendientes</a></li>
+       <li> <a href="confirmadas_v.php"><i class="fas fa-tools"></i>Ventas Confirmadas</a></li>
+        <li  class="active"> <a href="canceladas_v.php"><i class="fas fa-tools"></i>Ventas Canceladas</a></li>
                       <li><a href="../../index.php">Salir</a></li>
                 </ul>
             </div>
@@ -88,9 +88,8 @@ $total_pedidos = $conn->query($sql_pedidos)->fetch_assoc()['total'];
                             <i class="fas fa-users"></i>
                         </div>
                         <div class="summary-info">
-                            <h4>Total Pedidos</h4>
-                    <p class="summary-value"><?php echo $total_pedidos; ?></p>
-
+                        <h4>Ventas canceladas</h4>
+<p class="summary-value"><?php echo $total_ventas; ?></p>
                         </div>
                     </div>
                 </div>
@@ -101,34 +100,31 @@ $total_pedidos = $conn->query($sql_pedidos)->fetch_assoc()['total'];
                 <div class="clients-view table-view active">
                     <div class="table-container">
                         <table class="clients-table">
-                       <thead>
-    <tr>
-        <th>ID Pedido</th>
-        <th>Cliente</th>
-        <th>Item</th>
-        <th>Tipo</th>
-        <th>Cantidad</th>
-        <th>Subtotal</th>
-        <th>Fecha de Pedido</th>
-    </tr>
-</thead>
- <?php
-$pedidos = obtenerPedidos($conn);
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll">
+                                    </th>
+                                    <th>ID Cliente</th>
+                                    <th>Total</th>
+                                    <th>Fecha</th>
+                             <th>Estado</th>
+                                  
+                                </tr>
+                            </thead>
 
-?>
 <tbody>
-    <?php foreach ($pedidos as $p): ?>
+    <?php foreach ($ventas as $venta): ?>
         <tr>
-            <td><?= $p['id'] ?></td>
-            <td><?= htmlspecialchars($p['cliente']) ?></td>
-            <td><?= htmlspecialchars($p['nombre_item']) ?></td>
-            <td><?= $p['tipo'] ?></td>
-            <td><?= $p['cantidad'] ?></td>
-            <td>$<?= number_format($p['subtotal'], 0, ',', '.') ?></td>
-            <td><?= $p['fecha'] ?></td>
+            <td><input type="checkbox" class="client-checkbox"></td>
+            <td><?= htmlspecialchars($venta['id_cliente']) ?></td>
+            <td>$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
+            <td><?= date("d/m/Y H:i A", strtotime($venta['fecha'])) ?></td>
+            <td><?= ucfirst($venta['estado']) ?></td> <!-- Estado añadido -->
         </tr>
     <?php endforeach; ?>
 </tbody>
+
 
 
                   
@@ -151,6 +147,6 @@ $pedidos = obtenerPedidos($conn);
                        
     <div class="modal-overlay"></div>
 
-   <script src="../../assets/js/admin/pedido.js"></script>
+   <script src="../../assets/js/admin/venta.js"></script>
 </body>
 </html>

@@ -1,43 +1,35 @@
 <?php
-session_start();
-$json = file_get_contents("php://input");
-$data = json_decode($json, true);
+include '../conexion.php';
+include '../modelos/venta_m.php';
 
-include "../conexion.php";
+header('Content-Type: application/json');
 
-$total = $data['total'];
-$id_cliente = $_SESSION["id_usuario"];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $json = file_get_contents("php://input");
+    $data = json_decode($json, true);
 
-$stmt = $conn->prepare("INSERT INTO ventas (total, id_cliente) VALUES (?, ?)");
-$stmt->bind_param("ii", $total, $id_cliente);  // Usa "di" si total es decimal
-$stmt->execute();
+    $id_venta = $data['id'];
+    $nuevo_estado = $data['estado']; // ✅ Usar el estado recibido, no "pendiente" fijo
 
-// Obtener el ID de la venta insertada
-$id_venta = $conn->insert_id;
-if ($data['servicios']!=null) {
-    foreach ($data['servicios'] as $key => $value) {
-        $stmt = $conn->prepare("INSERT INTO pedidos (cantidad, subtotal, id_servicio, id_venta) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiii", $value['cantidad'], $value['subtotal'], $value['id'],$id_venta);  // Usa "di" si total es decimal
-        $stmt->execute();
+    $resultado = actualizarEstadoVenta($conn, $id_venta, $nuevo_estado);
+
+    if ($resultado === true) {
+        echo json_encode(["success" => true]);
+    } else {
+        echo json_encode(["success" => false, "error" => $resultado]);
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $json = file_get_contents("php://input");
+    $data = json_decode($json, true);
+    $id_venta = $data['id'];
 
-if ($data['productos'] !=null) {
-    foreach ($data['productos'] as $key => $value) {
-        $stmt = $conn->prepare("INSERT INTO pedidos (cantidad, subtotal, id_producto, id_venta) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("iiii", $value['cantidad'], $value['subtotal'], $value['id'],$id_venta);  // Usa "di" si total es decimal
-        $stmt->execute();
+    $resultado = eliminarVenta($conn, $id_venta);
+
+    if ($resultado === true) {
+        echo json_encode(["success" => true]);
+    } else {
+        echo json_encode(["success" => false, "error" => $resultado]);
     }
 }
-
-
-$stmt->close();
-
-// Devuelve el ID como respuesta JSON
-echo json_encode([
-    "status" => "ok",
-    "id_venta" => $id_venta
-]);
-
-

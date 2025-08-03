@@ -43,7 +43,10 @@ $sumaPrecios = obtenerSumaPrecios($conn);
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
   <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
-
+    <li><a href="venta_v.php"><i class="fas fa-tools"></i>Ventas</a></li>
+    <li> <a href="pendientes_v.php"><i class="fas fa-tools"></i>Ventas Pendientes</a></li>
+      <li> <a href="confirmadas_v.php"><i class="fas fa-tools"></i>Ventas Confirmadas</a></li>
+        <li> <a href="canceladas_v.php"><i class="fas fa-tools"></i>Ventas Canceladas</a></li>
                       <li><a href="../../index.php">Salir</a></li>
                 </ul>
             </div>

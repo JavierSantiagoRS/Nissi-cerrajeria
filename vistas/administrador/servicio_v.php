@@ -39,13 +39,16 @@ $sumaPrecios = obtenerSumaPrecios($conn);
             </div>
             <div class="sidebar-menu">
                 <ul>
-                      <li class="active"><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                      <li ><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
- <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
+ <li class="active"><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
   <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
-
+    <li><a href="venta_v.php"><i class="fas fa-tools"></i>Ventas</a></li>
+    <li> <a href="pendientes_v.php"><i class="fas fa-tools"></i>Ventas Pendientes</a></li>
+      <li> <a href="confirmadas_v.php"><i class="fas fa-tools"></i>Ventas Confirmadas</a></li>
+        <li> <a href="canceladas_v.php"><i class="fas fa-tools"></i>Ventas Canceladas</a></li>
                       <li><a href="../../index.php">Salir</a></li>
                 </ul>
             </div>

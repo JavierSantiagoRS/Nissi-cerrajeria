@@ -34,44 +34,52 @@
       <tbody id="datosProductos"></tbody>
     </table>
     <div>
-      $
-      <h2 id="total"></h2>
-      <button onclick="enviarCompra()">CONFIRMAR COMPRA</button>
-    </div>
-    <script>
-      function enviarCompra() {
-        if (confirm("Seguro de realizar toda su compra?")) {
-          const data = {
-            total: Number(document.getElementById("total").innerHTML),
-            servicios: JSON.parse(localStorage.getItem("servicios")),
-            productos: JSON.parse(localStorage.getItem("productos")),
-          };
+  <h2>Total: $<span id="total">0</span></h2>
+  <button onclick="enviarCompra()">CONFIRMAR COMPRA</button>
+</div>
 
-          // const formData = new FormData(form);
-          fetch("controlador/venta_c.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          })
-            .then((res) => res.json())
-            .then((respuesta) => {
-              console.log("ID de venta generado:", respuesta.id_venta);
-              if (respuesta.status == "ok") {
-                alert("Su solicitud fue registrada con exito");
-                localStorage.removeItem("servicios");
-                localStorage.removeItem("productos");
-                mostrarDatos();
-              }
-            })
-            .catch((error) => {
-              //   alert("Error al enviar la compra.");
-              //   console.error(error);
-            });
-          window.location.reload;
+    <script>
+     function enviarCompra() {
+  if (confirm("Seguro de realizar toda su compra?")) {
+    const data = {
+      total: Number(document.getElementById("total").innerHTML),
+      servicios: JSON.parse(localStorage.getItem("servicios")),
+      productos: JSON.parse(localStorage.getItem("productos")),
+    };
+
+    fetch("controlador/carrito_c.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((respuesta) => {
+        console.log("ID de venta generado:", respuesta.id_venta);
+        if (respuesta.status == "ok") {
+          alert("Su solicitud fue registrada con éxito");
+          
+          // Limpiar carrito del localStorage
+          localStorage.removeItem("servicios");
+          localStorage.removeItem("productos");
+
+          // Mostrar datos actualizados sin los ítems
+          mostrarDatos();
+
+          // Esperar un momento y recargar
+          setTimeout(() => {
+            window.location.reload();
+          }, 500); // puedes ajustar el tiempo si quieres
         }
-      }
+      })
+      .catch((error) => {
+        alert("Error al enviar la compra.");
+        console.error(error);
+      });
+  }
+}
+
 
       function mostrarDatos() {
         let total = 0;

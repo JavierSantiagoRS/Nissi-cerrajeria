@@ -38,6 +38,12 @@ $total_servicios = $conn->query($sql_servicios)->fetch_assoc()['total'];
                         <li><a href="../../index.php#nosotros">Nosotros</a></li>
                         <li><a href="../../index.php#contacto">Contacto</a></li>
                         <li><a href="index.php" class="active">Mi Perfil</a></li>
+                        <li>  <div class="header-actions">
+                  <a class="cart-icon" href="../../carrito.php"> <i class="fas fa-shopping-cart"></i>  <span id="cantidad-carrito" class="cart-count">0</span></a>
+                    <div class="mobile-menu-btn">
+                        <i class="fas fa-bars"></i>
+                    </div>
+                </div></li>
                     </ul>
                 </nav>
                 <div class="user-menu">
@@ -84,6 +90,7 @@ $total_servicios = $conn->query($sql_servicios)->fetch_assoc()['total'];
                         <ul>
                             <li class="active"><a href="#dashboard" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                             <li><a href="#info" data-section="info"><i class="fas fa-user"></i> Información Personal</a></li>
+                            <li><a href="#info" data-section="info"><i class="fas fa-user"></i> Publicar Reseñas</a></li>
                         </ul>
                     </nav>
                     <div class="help-box">
@@ -113,7 +120,7 @@ $total_servicios = $conn->query($sql_servicios)->fetch_assoc()['total'];
                         <div class="recent-services">
                             <div class="section-header-small">
                                 <h3>Servicios Recientes</h3>
-                                <a href="../../index.php#servicios" class="view-all" data-section="services">Ver todos <i class="fas fa-arrow-right"></i></a>
+                                <a href="../../servicios.php" class="view-all" data-section="services">Ver todos <i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div class="services-list">
  <?php
@@ -168,7 +175,7 @@ if ($resultado && $resultado->num_rows > 0) {
                                     </div>
                                     <h4>Contactar Soporte</h4>
                                 </a>
-                                <a href="../../index.php#galeria" class="action-card" id="view-catalog">
+                                <a href="../../inventario.php" class="action-card" id="view-catalog">
                                     <div class="action-icon">
                                         <i class="fas fa-book"></i>
                                     </div>
@@ -200,6 +207,7 @@ if ($resultado && $resultado->num_rows > 0) {
                         <li><a href="index.html#nosotros">Nosotros</a></li>
                         <li><a href="index.html#contacto">Contacto</a></li>
                     </ul>
+                    
                 </div>
                 <div class="footer-services">
                     <h3>Servicios</h3>
@@ -236,5 +244,76 @@ if ($resultado && $resultado->num_rows > 0) {
 
     <!-- JavaScript -->
      <script src="../../assets/js/cliente.js"></script>
+
+     
+<script>
+function enviarFormularioYRedirigir(event, id, nombre, precio) {
+    event.preventDefault(); // Evita que el enlace se abra de inmediato
+    let servicios = JSON.parse(localStorage.getItem("servicios"));
+    if (servicios == null) {
+        servicios = []
+    }
+
+    let validoExistencia = false;
+    servicios.forEach((val) => {
+        if (val.id == id) {
+            validoExistencia = true;
+        }
+    });
+    if(validoExistencia){
+        alert("Ups! este servicio ya fue agregado");
+            return;
+    }
+
+    const servicio = {
+        'id': id,
+        'nombre': nombre,
+        'cantidad': 1,
+        'precio': precio,
+        'subtotal': precio
+    };
+    servicios.push(servicio);
+    
+    servicios = JSON.stringify(servicios);
+    localStorage.setItem('servicios',servicios.toString())  
+
+    cantidadCarro();
+    // const form = document.getElementById(formId);
+
+    // // Envía el formulario usando fetch (sin recargar la página)
+    // const formData = new FormData(form);
+    // fetch(form.action, {
+    //     method: "POST",
+    //     body: formData
+    // }).then(() => {
+    //     // Después de guardar, redirige a WhatsApp
+    //     window.open(whatsappUrl, "_blank");
+    // }).catch(error => {
+    //     alert("Error al enviar el formulario.");
+    //     console.error(error);
+    // });
+}
+</script>
+     <script>
+                    function cantidadCarro() {
+                        let p = JSON.parse(localStorage.getItem("productos"));
+                        if (p==null){
+                            p=0
+                        }else{
+                            p=p.length
+                        }
+
+                        let s = JSON.parse(localStorage.getItem("servicios"));                        
+                        if (s==null){
+                            s=0
+                        }else{
+                            s=s.length
+                        }
+                        let cant = p + s;
+                        document.getElementById("cantidad-carrito").innerHTML = cant;
+                    }
+                    cantidadCarro();
+                </script>
+                
 </body>
 </html>
