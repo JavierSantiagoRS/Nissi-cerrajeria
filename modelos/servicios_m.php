@@ -36,26 +36,17 @@ function actualizarservicio($conn, $data) {
 }
 
 function eliminarservicio($conn, $id) {
-    // Buscar la imagen asociada
-    $stmt = $conn->prepare("SELECT imagen FROM servicios WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $producto = $result->fetch_assoc();
+    try {
+        $sql = "DELETE FROM servicios WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$id]);
 
-    // Eliminar imagen si existe
-    if ($producto && !empty($producto['imagen'])) {
-        $rutaImagen = __DIR__ . '/../assets/' . $producto['imagen'];
-        if (file_exists($rutaImagen)) {
-            unlink($rutaImagen);
-        }
+        echo "eliminado";
+    } catch (PDOException $e) {
+        echo "en uso";
     }
-
-    // Eliminar producto de la base de datos
-    $stmt = $conn->prepare("DELETE FROM servicios WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
 }
+
 
 
 
@@ -78,5 +69,56 @@ function obtenerSumaPrecios($conn) {
     return $fila['suma_precios'] ?? 0;
 }
 
+function cambiarEstadoServicio($conn, $id, $estado) {
+    $sql = "UPDATE servicios SET estado = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("si", $estado, $id);
+    $stmt->execute();
+}
+
+function obtenerServiciosPaginados($conn, $inicio, $limite) {
+    $where = " WHERE 1=1 ";  // siempre verdadero
+    $order = " ORDER BY id ASC "; // por defecto
+
+    // Filtro por estado
+    if (!empty($_GET['estado'])) {
+        $estado = $_GET['estado'];
+        $where .= " AND estado = '" . $conn->real_escape_string($estado) . "' ";
+    }
+
+    // Ordenar por precio
+    if (!empty($_GET['precio'])) {
+        if ($_GET['precio'] == "asc") {
+            $order = " ORDER BY precio ASC ";
+        } elseif ($_GET['precio'] == "desc") {
+            $order = " ORDER BY precio DESC ";
+        }
+    }
+
+    // Ordenar por nombre
+    if (!empty($_GET['nombre'])) {
+        if ($_GET['nombre'] == "asc") {
+            $order = " ORDER BY nombre ASC ";
+        } elseif ($_GET['nombre'] == "desc") {
+            $order = " ORDER BY nombre DESC ";
+        }
+    }
+
+    $sql = "SELECT * FROM servicios $where $order LIMIT ?, ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $inicio, $limite);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+function contarServicios($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM servicios";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $fila = $result->fetch_assoc();
+    return $fila['total'] ?? 0;
+}
 
 ?>

@@ -27,10 +27,12 @@ function loginUsuario($conn, $data){
             
             exit();
         } else {
-            echo "Clave incorrecta.";
+            echo "<script>alert('❌ Clave incorrecta, intenta nuevamente'); window.history.back();</script>";
+
         }
     } else {
-        echo "Usuario no encontrado.";
+        echo "<script>alert('⚠️ Usuario no encontrado, regístrate primero'); window.history.back();</script>";
+
     }
 }
 

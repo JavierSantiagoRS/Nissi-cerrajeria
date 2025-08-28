@@ -1,5 +1,5 @@
 <?php
-function obtenerPedidos($conn) {
+function obtenerPedidosPaginados($conn, $inicio, $limite) {
     $sql = "SELECT 
                 p.*, 
                 v.fecha,
@@ -19,17 +19,21 @@ function obtenerPedidos($conn) {
             INNER JOIN usuarios u ON v.id_cliente = u.id
             LEFT JOIN inventario i ON p.id_producto = i.id
             LEFT JOIN servicios s ON p.id_servicio = s.id
-            ORDER BY p.id DESC";
+            ORDER BY p.id DESC
+            LIMIT ?, ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $inicio, $limite);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
 
-    $resultado = $conn->query($sql);
-    $pedidos = [];
+    return $resultado->fetch_all(MYSQLI_ASSOC);
+}
 
-    if ($resultado && $resultado->num_rows > 0) {
-        while ($fila = $resultado->fetch_assoc()) {
-            $pedidos[] = $fila;
-        }
-    }
-
-    return $pedidos;
+function contarPedidos($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM pedidos";
+    $res = $conn->query($sql);
+    $fila = $res->fetch_assoc();
+    return $fila['total'] ?? 0;
 }
 ?>

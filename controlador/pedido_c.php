@@ -16,8 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['accion']) && $_GET['ac
     $estado = 'pendiente';
 
     // 1. Registrar la venta
-    $stmtVenta = $conn->prepare("INSERT INTO ventas (total, fecha, id_cliente, estado) VALUES (?, NOW(), ?, ?)");
-    $stmtVenta->bind_param("iis", $total, $id_cliente, $estado);
+ $stmtVenta = $conn->prepare("INSERT INTO ventas (total, id_cliente, estado) VALUES (?, ?, ?)");
+$stmtVenta->bind_param("iis", $total, $id_cliente, $estado);
+
     $stmtVenta->execute();
 
     if ($stmtVenta->affected_rows > 0) {

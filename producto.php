@@ -21,6 +21,20 @@ $result = $conn->query($sql);
      <link rel="stylesheet" href="assets/css/cliente.css">
        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+<style>
+    .inicial-perfil {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    border-radius: 50%;
+    background: #0011ffff; /* azul */
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+}
+</style>
 <body>
     <!-- Header -->
     <header class="header">
@@ -36,12 +50,31 @@ $result = $conn->query($sql);
                         <li><a href="#inventarios" class="active">Productos</a></li>
                         <li><a href="index.php#nosotros">Nosotros</a></li>
                         <li><a href="index.php#contacto">Contacto</a></li>
+                         <?php if (isset($_SESSION["id_usuario"])): ?>
+            <?php
+            // Traer el nombre de usuario
+            $id_usuario = $_SESSION["id_usuario"];
+            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
+            $res_user = $conn->query($sql_user);
+            $inicial = "?";
+
+            if ($res_user && $res_user->num_rows > 0) {
+                $row_user = $res_user->fetch_assoc();
+                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
+            }
+            ?>
+            <li>
+                <a href="vistas/cliente/index.php" class="perfil-icon">
+                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+                </a>
+            </li>
+        <?php else: ?>
+            <li><a href="vistas/login.php">Iniciar sesión</a></li>
+        <?php endif; ?>
                     </ul>
                 </nav>
                 <div class="header-actions">
-                    <div class="search-toggle">
-                        <i class="fas fa-search"></i>
-                    </div>
+                 
                   <a class="cart-icon" href="carrito.php"> <i class="fas fa-shopping-cart"></i>  <span id="cantidad-carrito" class="cart-count">0</span></a>
                     <div class="mobile-menu-btn">
                         <i class="fas fa-bars"></i>
@@ -138,7 +171,7 @@ $result = $conn->query($sql);
 
     <!-- Campos ocultos requeridos por pedidos -->
     <input type="hidden" name="nombre" value="<?= htmlspecialchars($row['titulo']) ?>">
-    <input type="hidden" name="id_usuario" value="<?= $_SESSION['id_usuario'] ?>">
+    <input type="hidden" name="id_usuario" value="<?= isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : '' ?>">
     <input type="hidden" name="tipo" value="producto"> <!-- o 'servicio' según el caso -->
     <input type="hidden" name="precio" value="<?= $row['precio'] ?>">
 
@@ -225,7 +258,7 @@ $result = $conn->query($sql);
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo.jpg-mzASpdnX9njoa03CVf1OthnLqW4StV.jpeg" alt="NISSI Cerrajería">
+                         <img src="assets\img\logo.jpg" alt="NISSI Cerrajería" class="logo">
                     <p>Tu seguridad es nuestra prioridad. Especialistas en cerrajería con más de 15 años de experiencia.</p>
                 </div>
                 <div class="footer-links">
@@ -240,13 +273,22 @@ $result = $conn->query($sql);
                 </div>
                 <div class="footer-services">
                     <h3>Servicios</h3>
-                    <ul>
-                        <li><a href="#">Cerrajería 24h</a></li>
-                        <li><a href="#">Instalación de cerraduras</a></li>
-                        <li><a href="#">Duplicado de llaves</a></li>
-                        <li><a href="#">Sistemas de seguridad</a></li>
-                        <li><a href="#">Reparaciones</a></li>
-                    </ul>
+                              <?php
+$sql = "SELECT * FROM servicios WHERE estado = 'activo' LIMIT 5";
+$resultado = $conn->query($sql);
+
+if ($resultado && $resultado->num_rows > 0) {
+    echo '<ul>';
+    while ($servicio = $resultado->fetch_assoc()) {
+        echo '<li>';
+        echo '<a href="servicios.php" id="' . $servicio["id"] . '">';
+        echo htmlspecialchars($servicio["nombre"]);
+        echo '</a>';
+        echo '</li>';
+    }
+    echo '</ul>';
+}
+?>
                 </div>
                 <div class="footer-contact">
                     <h3>Contacto</h3>
@@ -274,7 +316,7 @@ $result = $conn->query($sql);
     </a>
 
 
-
+ <script src="assets/js/cliente.js"></script>
 <script>
    
   fetch(form.action, {
@@ -373,12 +415,14 @@ buyNowBtn?.addEventListener("click", function () {
         const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
         window.location.href = url;
       } else {
-        document.getElementById("mensaje").innerText = "Error al registrar el pedido.";
+        alert("Necesitas iniciar sesión para realizar la compra.");
+            window.location.href = "vistas/login.php"; 
       }
     })
     .catch((error) => {
       console.error("Error en la petición:", error);
-      document.getElementById("mensaje").innerText = "Error al registrar el pedido.";
+       alert("Necesitas iniciar sesión para realizar la compra.");
+          window.location.href = "vistas/login.php"; 
     });
 });
 
@@ -392,14 +436,14 @@ buyNowBtn?.addEventListener("click", function () {
 
    <script>
                     function cantidadCarro() {
-                        let p = JSON.parse(localStorage.getItem("productos"));
+                        let p = JSON.parse(sessionStorage.getItem("productos"));
                         if (p==null){
                             p=0
                         }else{
                             p=p.length
                         }
 
-                        let s = JSON.parse(localStorage.getItem("servicios"));                        
+                        let s = JSON.parse(sessionStorage.getItem("servicios"));                        
                         if (s==null){
                             s=0
                         }else{
@@ -415,7 +459,7 @@ buyNowBtn?.addEventListener("click", function () {
 function agregarProducto(event, id, nombre, precio) {
     event.preventDefault();
 
-    let productos = JSON.parse(localStorage.getItem("productos"));
+    let productos = JSON.parse(sessionStorage.getItem("productos"));
     if (!productos) productos = [];
 
     let existe = productos.some(p => parseInt(p.id) === parseInt(id));
@@ -436,7 +480,7 @@ function agregarProducto(event, id, nombre, precio) {
     };
 
     productos.push(producto);
-    localStorage.setItem("productos", JSON.stringify(productos));
+    sessionStorage.setItem("productos", JSON.stringify(productos));
 
     // ✅ Llamar a la función para actualizar la vista del carrito
     cantidadCarro();

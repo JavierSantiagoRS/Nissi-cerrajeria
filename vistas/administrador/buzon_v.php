@@ -21,13 +21,29 @@ if ($resultado && $resultado->num_rows > 0) {
     <link rel="stylesheet" href="../../assets/css/admin/buzon.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+<style>
+    .sender-avatar.initials {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #4a90e2;
+  color: white;
+  font-weight: bold;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+</style>
 <body>
     <div class="dashboard">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo.jpg-mzASpdnX9njoa03CVf1OthnLqW4StV.jpeg" alt="NISSI Cerrajería">
+                    <img src="../../assets\img\logo.jpg" alt="NISSI Cerrajería" class="logo">
                 </div>
                 <h3>NISSI Cerrajería</h3>
             </div>
@@ -39,13 +55,12 @@ if ($resultado && $resultado->num_rows > 0) {
                      <li class="active"><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
   <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
-    <li><a href="venta_v.php"><i class="fas fa-tools"></i>Ventas</a></li>
-    <li> <a href="pendientes_v.php"><i class="fas fa-tools"></i>Ventas Pendientes</a></li>
-        <li> <a href="confirmadas_v.php"><i class="fas fa-tools"></i>Ventas Confirmadas</a></li>
-         <li> <a href="canceladas_v.php"><i class="fas fa-tools"></i>Ventas Canceladas</a></li>
-                      <li><a href="../../index.php">Salir</a></li>
+    <li><a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
+
+                       <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
             </div>
+            
         </aside>
 
         <!-- Contenido principal -->
@@ -102,14 +117,15 @@ if ($resultado && $resultado->num_rows > 0) {
 <div class="message-item unread" data-id="<?= $mensaje['id'] ?>">
   
     <div class="message-sender">
-        <div class="sender-avatar">
-            <img src="/placeholder.svg?height=40&width=40" alt="<?= htmlspecialchars($mensaje['nombre']) ?>">
-        </div>
-        <div class="sender-info">
-            <h4><?= htmlspecialchars($mensaje['nombre']) ?></h4>
-            <p><?= htmlspecialchars($mensaje['mail']) ?></p>
-        </div>
+    <div class="sender-avatar initials">
+        <?= strtoupper(substr($mensaje['nombre'], 0, 1)) ?>
     </div>
+    <div class="sender-info">
+        <h4><?= htmlspecialchars($mensaje['nombre']) ?></h4>
+        <p><?= htmlspecialchars($mensaje['mail']) ?></p>
+    </div>
+</div>
+
     <div class="message-content">
         <div class="message-subject">
             <span class="category-tag general"><?= htmlspecialchars($mensaje['servicio']) ?></span>

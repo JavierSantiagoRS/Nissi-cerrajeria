@@ -73,8 +73,19 @@ if ($accion == 'crear') {
 
 } elseif ($accion == 'eliminar') {
     $id = $_GET['id'] ?? 0;
-    eliminarinventario($conn, $id);
+    include_once '../modelos/inventario_m.php';
+    eliminarinventario($conn, $id); // Esta función debe hacer echo "eliminado" o echo "en uso"
+    exit;
 }
+
+elseif ($accion == 'cambiar_estado') {
+    $id = $_GET['id'] ?? 0;
+    $estado = $_GET['estado'] ?? 'activo';
+    cambiarEstadoInventario($conn, $id, $estado);
+    header('Location: ../vistas/administrador/inventario_v.php');
+    exit;
+}
+
 
 header('Location: ../vistas/administrador/inventario_v.php');
 

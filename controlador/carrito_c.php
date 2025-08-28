@@ -25,9 +25,10 @@ $id_cliente = $_SESSION["id_usuario"];
 $fecha = date("Y-m-d H:i:s");
 
 // 1. Insertar venta
-$sqlVenta = "INSERT INTO ventas (id_cliente, total, fecha, estado) VALUES (?, ?, ?, 'pendiente')";
+$sqlVenta = "INSERT INTO ventas (id_cliente, total, estado) VALUES (?, ?, 'pendiente')";
 $stmtVenta = $conn->prepare($sqlVenta);
-$stmtVenta->bind_param("iis", $id_cliente, $total, $fecha);
+$stmtVenta->bind_param("ii", $id_cliente, $total);
+
 
 if (!$stmtVenta->execute()) {
     echo json_encode(["status" => "error", "message" => "Error al registrar venta"]);

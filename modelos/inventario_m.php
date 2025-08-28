@@ -7,6 +7,61 @@ function obtenerinventario($conn) {
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
+function obtenerInventarioPaginado($conn, $inicio, $limite) {
+    $where = " WHERE 1=1 ";
+    $order = " ORDER BY id ASC ";
+
+    // Filtro por estado
+    if (!empty($_GET['estado'])) {
+        $estado = $conn->real_escape_string($_GET['estado']);
+        $where .= " AND estado = '$estado' ";
+    }
+
+    // Filtro por stock
+    if (!empty($_GET['stock'])) {
+        if ($_GET['stock'] == "bajo") {
+            $where .= " AND contenido < 10 "; // ajusta el número límite
+        } elseif ($_GET['stock'] == "alto") {
+            $where .= " AND contenido >= 10 ";
+        }
+    }
+
+    // Ordenar por precio
+    if (!empty($_GET['precio'])) {
+        if ($_GET['precio'] == "asc") {
+            $order = " ORDER BY precio ASC ";
+        } elseif ($_GET['precio'] == "desc") {
+            $order = " ORDER BY precio DESC ";
+        }
+    }
+
+    // Ordenar por nombre
+    if (!empty($_GET['nombre'])) {
+        if ($_GET['nombre'] == "asc") {
+            $order = " ORDER BY titulo ASC ";
+        } elseif ($_GET['nombre'] == "desc") {
+            $order = " ORDER BY titulo DESC ";
+        }
+    }
+
+    $sql = "SELECT * FROM inventario $where $order LIMIT ?, ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $inicio, $limite);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+
+function contarInventario($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM inventario";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $fila = $result->fetch_assoc();
+    return $fila['total'] ?? 0;
+}
+
 function crearinventario($conn, $data) {
     $sql = "INSERT INTO inventario (imagen, titulo, contenido, precio, descripcion) 
             VALUES (?, ?, ?, ?, ?)";
@@ -35,29 +90,19 @@ function actualizarinventario($conn, $data) {
     );
     $stmt->execute();
 }
+
 function eliminarinventario($conn, $id) {
-    // Buscar la imagen asociada
-    $stmt = $conn->prepare("SELECT imagen FROM inventario WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $producto = $result->fetch_assoc();
+    try {
+        $sql = "DELETE FROM inventario WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
 
-    // Eliminar imagen si existe
-    if ($producto && !empty($producto['imagen'])) {
-        $rutaImagen = __DIR__ . '/../assets/' . $producto['imagen'];
-        if (file_exists($rutaImagen)) {
-            unlink($rutaImagen);
-        }
+        echo "eliminado";
+    } catch (Exception $e) {
+        echo "en uso";
     }
-
-    // Eliminar producto de la base de datos
-    $stmt = $conn->prepare("DELETE FROM inventario WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
 }
-
-
 
 function obtenerTotalinventario($conn) {
     $sql = "SELECT SUM(contenido) AS total FROM inventario";
@@ -69,7 +114,7 @@ function obtenerTotalinventario($conn) {
 }
 
 function obtenerSumaPrecios($conn) {
-    $sql = "SELECT SUM(precio) AS suma_precios FROM inventario";
+    $sql = "SELECT SUM(precio*contenido) AS suma_precios FROM inventario";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -77,5 +122,10 @@ function obtenerSumaPrecios($conn) {
     return $fila['suma_precios'] ?? 0;
 }
 
-
+function cambiarEstadoInventario($conn, $id, $estado) {
+    $sql = "UPDATE inventario SET estado = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("si", $estado, $id);
+    $stmt->execute();
+}
 ?>

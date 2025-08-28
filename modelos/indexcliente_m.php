@@ -1,7 +1,7 @@
 <?php
 $id_usuario = $_SESSION["id_usuario"];
 
-$sql = "SELECT fecha_registro, usuario FROM usuarios WHERE id = $id_usuario";
+$sql = "SELECT fecha_registro, usuario, correo, celular FROM usuarios WHERE id = $id_usuario";
 $resultado = $conn->query($sql);
 
 if ($resultado && $resultado->num_rows > 0) {
