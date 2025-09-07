@@ -362,6 +362,14 @@ $totalPaginas = ceil($totalClientes / $limite);
                 gap: 1rem;
             }
         }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: var(--secondary-blue);
+}
 </style>
 <body>
     <div class="dashboard">
@@ -376,15 +384,18 @@ $totalPaginas = ceil($totalClientes / $limite);
             <div class="sidebar-menu">
                 <ul>
                 <li ><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
+                    <li><a href="inventario_v.php"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li class="active"><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-box"></i>Pedidos</a></li>
     <li><a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
 
                        <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
+            </div>
+               <div class="sidebar-footer">
+                <p>© 2024 NISSI Cerrajería</p>
             </div>
         </aside>
 

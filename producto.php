@@ -16,7 +16,7 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerradura Digital Inteligente Pro - NISSI Cerrajería</title>
+    <title>NISSI Cerrajería - Cerrajería Profesional</title>
  <link rel="stylesheet" href="assets/css/producto.css">
      <link rel="stylesheet" href="assets/css/cliente.css">
        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -264,11 +264,11 @@ $result = $conn->query($sql);
                 <div class="footer-links">
                     <h3>Enlaces rápidos</h3>
                     <ul>
-                        <li><a href="#inicio">Inicio</a></li>
-                        <li><a href="#servicios">Servicios</a></li>
-                        <li><a href="#inventarios">Productos</a></li>
-                        <li><a href="#sobre-nosotros">Sobre nosotros</a></li>
-                        <li><a href="#contacto">Contacto</a></li>
+                        <li><a href="index,php#inicio">Inicio</a></li>
+                        <li><a href="index.php#servicios">Servicios</a></li>
+                        <li><a href="index.php#inventarios">Productos</a></li>
+                        <li><a href="index.php#sobre-nosotros">Sobre nosotros</a></li>
+                        <li><a href="index.php#contacto">Contacto</a></li>
                     </ul>
                 </div>
                 <div class="footer-services">
@@ -292,26 +292,24 @@ if ($resultado && $resultado->num_rows > 0) {
                 </div>
                 <div class="footer-contact">
                     <h3>Contacto</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> Calle Principal 123, Madrid</p>
-                    <p><i class="fas fa-phone"></i> +34 900 123 456</p>
-                    <p><i class="fas fa-envelope"></i> info@nissicerrajeria.com</p>
-                    <p><i class="fas fa-clock"></i> 24/7 Emergencias</p>
+                    <p><i class="fas fa-phone"></i> 310 564 8667 </p>
+                    <p><i class="fas fa-envelope"></i> 960donjulio@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Calle 25 Carrera SUR #23-37 Barrio CANAIMA, Neiva</p>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 NISSI Cerrajería. Todos los derechos reservados.</p>
                 <div class="footer-social">
-                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                   <a href="https://www.facebook.com/people/Nissi-Cerrajer%C3%ADa/100050027354173/#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/nissi.solution/reel/C_GLsMJu_qy/" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/573105648667?text=Hola%2C%20estoy%20interesado%20en%20sus%20productos%20y%20servicios.%20¿Podría%20darme%20más%20información%3F" class="social-icon"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
     <!-- WhatsApp Float -->
-    <a href="https://wa.me/573176039806?text=Hola%2C%20estoy%20interesado%20en%20sus%20servicios.%20¿Podría%20darme%20más%20información%3F" class="whatsapp-float" target="_blank">
+    <a href="https://wa.me/573105648667?text=Hola%2C%20estoy%20interesado%20en%20sus%20productos%20y%20servicios.%20¿Podría%20darme%20más%20información%3F" class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
 
@@ -415,13 +413,22 @@ buyNowBtn?.addEventListener("click", function () {
         const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
         window.location.href = url;
       } else {
-        alert("Necesitas iniciar sesión para realizar la compra.");
+             Swal.fire({
+  title: "Necesitas iniciar sesión para realizar la compra.",
+  icon: "success",
+  draggable: true
+});
             window.location.href = "vistas/login.php"; 
       }
     })
     .catch((error) => {
       console.error("Error en la petición:", error);
-       alert("Necesitas iniciar sesión para realizar la compra.");
+     
+       Swal.fire({
+  title: "Necesitas iniciar sesión para realizar la compra.",
+  icon: "success",
+  draggable: true
+});
           window.location.href = "vistas/login.php"; 
     });
 });
@@ -464,7 +471,12 @@ function agregarProducto(event, id, nombre, precio) {
 
     let existe = productos.some(p => parseInt(p.id) === parseInt(id));
     if (existe) {
-        alert("¡Este producto ya está en el carrito!");
+   
+        Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "¡Este producto ya está en el carrito!",
+});
         return;
     }
 
@@ -493,7 +505,7 @@ function agregarProducto(event, id, nombre, precio) {
 
 
 
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/js/producto.js">
   </script>
 </body>

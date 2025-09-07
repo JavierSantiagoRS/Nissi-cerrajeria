@@ -72,5 +72,6 @@ if (!empty($input["servicios"])) {
 echo json_encode([
     "status" => "ok",
     "message" => "Compra registrada",
-    "id_venta" => $id_venta
+    "id_venta" => $id_venta,
+    "id_usuario" => $_SESSION["id_usuario"]
 ]);

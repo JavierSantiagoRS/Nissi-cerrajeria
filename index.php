@@ -6,6 +6,32 @@ $id_usuario = $_SESSION['id_usuario'] ?? 0; // 0 si no existe
 include 'conexion.php';
 include 'controlador/buzon_c.php';
 
+// Obtener IP y User Agent
+$ip = $_SERVER['REMOTE_ADDR'];
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+// Revisar si ya hay visita de este dispositivo en esta hora
+$sql = "SELECT id 
+        FROM visitas 
+        WHERE ip = ? 
+          AND user_agent = ? 
+          AND DATE(fecha) = CURDATE() 
+          AND HOUR(fecha) = HOUR(NOW())
+        LIMIT 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ss", $ip, $userAgent);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows == 0) {
+    // Insertar nueva visita (única por hora)
+    $sqlInsert = "INSERT INTO visitas (fecha, ip, user_agent) VALUES (NOW(), ?, ?)";
+    $stmtInsert = $conn->prepare($sqlInsert);
+    $stmtInsert->bind_param("ss", $ip, $userAgent);
+    $stmtInsert->execute();
+}
+
+
 $sql = "SELECT * FROM inventario WHERE estado = 'activo' LIMIT 3";
 $result = $conn->query($sql);
 ?>
@@ -260,7 +286,7 @@ $result = $conn->query($sql);
                     <p>Servicio profesional de cerrajería con más de 15 años de experiencia. Atención 24/7 para emergencias.</p>
                     <div class="hero-buttons">
                         <a href="#contacto" class="btn btn-primary">Solicitar Servicio</a>
-                        <a href="tel:+573176039806" class="btn btn-secondary"><i class="fas fa-phone"></i> Llamar Ahora</a>
+                        <a href="tel:+573105648667" class="btn btn-secondary"><i class="fas fa-phone"></i> Llamar Ahora</a>
                     </div>
                 </div>
                 <div class="hero-image">
@@ -484,7 +510,7 @@ if ($result->num_rows > 0) {
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <h3>Dirección</h3>
-                        <p>Calle Principal #123, Ciudad</p>
+                        <p> Calle 25 Carrera SUR #23-37 Barrio CANAIMA, Neiva</p>
                     </div>
                     <div class="contact-card">
                         <div class="contact-icon">
@@ -492,14 +518,14 @@ if ($result->num_rows > 0) {
                         </div>
                         <h3>Teléfonos</h3>
                         <p><a href="tel:+573105648667">310 564 8667</a></p>
-                        <p><a href="tel:+573102414997">310 241 4997</a></p>
+                    
                     </div>
                     <div class="contact-card">
                         <div class="contact-icon">
                             <i class="fas fa-envelope"></i>
                         </div>
                         <h3>Email</h3>
-                        <p><a href="mailto:info@nissicerrajeria.com">info@nissicerrajeria.com</a></p>
+                        <p><a href="mailto:info@nissicerrajeria.com"> 960donjulio@gmail.com</a></p>
                     </div>
                     <div class="contact-card">
                         <div class="contact-icon">
@@ -512,9 +538,8 @@ if ($result->num_rows > 0) {
                     <div class="social-media">
                         <h3>Síguenos</h3>
                         <div class="social-icons">
-                            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://www.facebook.com/people/Nissi-Cerrajer%C3%ADa/100050027354173/#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                            <a href="https://www.instagram.com/nissi.solution/reel/C_GLsMJu_qy/" class="social-icon"><i class="fab fa-instagram"></i></a>
                         </div>
                     </div>
                 </div>
@@ -577,7 +602,7 @@ if ($result->num_rows > 0) {
             <div class="cta-content">
                 <h2>¿Necesita un servicio de cerrajería urgente?</h2>
                 <p>Estamos disponibles 24/7 para atender sus emergencias</p>
-                <a href="tel:+573176039806" class="btn btn-light"><i class="fas fa-phone"></i> Llamar Ahora</a>
+                <a href="tel:+573105648667" class="btn btn-light"><i class="fas fa-phone"></i> Llamar Ahora</a>
             </div>
         </div>
     </section>
@@ -622,29 +647,30 @@ if ($resultado && $resultado->num_rows > 0) {
                 </div>
                 <div class="footer-contact">
                     <h3>Contacto</h3>
-                    <p><i class="fas fa-phone"></i> 310 564 8667 | 310 241 4997</p>
-                    <p><i class="fas fa-envelope"></i> info@nissicerrajeria.com</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Calle Principal #123, Ciudad</p>
+                    <p><i class="fas fa-phone"></i> 310 564 8667 </p>
+                    <p><i class="fas fa-envelope"></i> 960donjulio@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Calle 25 Carrera SUR #23-37 Barrio CANAIMA, Neiva</p>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 NISSI Cerrajería. Todos los derechos reservados.</p>
                 <div class="footer-social">
-                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+                    <a href="https://www.facebook.com/people/Nissi-Cerrajer%C3%ADa/100050027354173/#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/nissi.solution/reel/C_GLsMJu_qy/" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/573105648667?text=Hola%2C%20estoy%20interesado%20en%20sus%20productos%20y%20servicios.%20¿Podría%20darme%20más%20información%3F" class="social-icon"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
     <!-- WhatsApp Flotante -->
-<a href="https://wa.me/573176039806?text=Hola%2C%20estoy%20interesado%20en%20sus%20servicios.%20¿Podría%20darme%20más%20información%3F" class="whatsapp-float" target="_blank">
+<a href="https://wa.me/573105648667?text=Hola%2C%20estoy%20interesado%20en%20sus%20productos%20y%20servicios.%20¿Podría%20darme%20más%20información%3F" class="whatsapp-float" target="_blank">
     <i class="fab fa-whatsapp"></i>
 </a>
 
 
     <!-- JavaScript -->
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/cliente.js"></script>
     <script>
   function agregarAlCarrito(event, id, nombre, precio) {
@@ -655,7 +681,12 @@ if ($resultado && $resultado->num_rows > 0) {
     // Validar si ya está agregado
     const existe = productos.some(item => item.id === id);
     if (existe) {
-        alert("Ups! este producto ya fue agregado");
+       Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "Este producto ya fue agregado!",
+  
+});
         return;
     }
 
@@ -674,8 +705,14 @@ if ($resultado && $resultado->num_rows > 0) {
     // Actualizar contador
     cantidadCarro();
 
-    // Opcional: notificación visual
-    alert(nombre + " ha sido añadido al carrito");
+Swal.fire({
+  position: "top-end",
+  icon: "success",
+ title: nombre + " ha sido añadido al carrito",
+  showConfirmButton: false,
+  timer: 1500
+});
+   
 }
 
     </script>
@@ -708,7 +745,11 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
         }
     });
     if(validoExistencia){
-        alert("Ups! este servicio ya fue agregado");
+       Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "Este servicio ya fue agregado!",
+});
             return;
     }
 
@@ -726,7 +767,14 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
 
     cantidadCarro();
         // Opcional: notificación visual
-    alert(nombre + " ha sido añadido al carrito");
+Swal.fire({
+  position: "top-end",
+  icon: "success",
+ title: nombre + " ha sido añadido al carrito",
+  showConfirmButton: false,
+  timer: 1500
+});
+   
     // const form = document.getElementById(formId);
 
     // // Envía el formulario usando fetch (sin recargar la página)
@@ -799,7 +847,12 @@ const usuarioLogueado = <?php echo isset($_SESSION['id_usuario']) ? 'true' : 'fa
 
 function enviarYRedirigirWhatsApp(formId, urlWA) {
     if (!usuarioLogueado) {
-        alert("Debes iniciar sesión para solicitar un servicio.");
+              Swal.fire({
+  title: "Debes iniciar sesión para solicitar un servicio.",
+  icon: "warning",
+  draggable: true
+});
+        
         window.location.href = "vistas/login.php";
         return;
     }

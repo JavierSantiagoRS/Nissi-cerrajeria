@@ -35,6 +35,14 @@ if ($resultado && $resultado->num_rows > 0) {
   justify-content: center;
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: var(--secondary-blue);
+}
+
 
 </style>
 <body>
@@ -50,17 +58,19 @@ if ($resultado && $resultado->num_rows > 0) {
             <div class="sidebar-menu">
                 <ul>
                 <li ><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
+                    <li><a href="inventario_v.php"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li class="active"><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-box"></i>Pedidos</a></li>
     <li><a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
 
                        <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
             </div>
-            
+              <div class="sidebar-footer">
+                <p>© 2024 NISSI Cerrajería</p>
+            </div>
         </aside>
 
         <!-- Contenido principal -->
@@ -143,7 +153,7 @@ if ($resultado && $resultado->num_rows > 0) {
     </div>
     <div class="message-actions">
        <a 
-  href="https://wa.me/57<?= $mensaje['celular'] ?>?text=Hola%20<?= urlencode($mensaje['nombre']) ?>,%20recibimos%20tu%20mensaje%20sobre%20'<?= urlencode($mensaje['servicio']) ?>'.%20Gracias%20por%20contactarnos." 
+  href="https://wa.me/57<?= $mensaje['celular'] ?>?text=Hola%20<?= urlencode($mensaje['nombre']) ?>,%20somos%20Nissi%20Cerrajeria,%20recibimos%20tu%20mensaje%20sobre%20'<?= urlencode($mensaje['servicio']) ?>'.%20Gracias%20por%20contactarnos." 
   target="_blank" 
   class="btn-icon" 
   title="Responder por WhatsApp"
@@ -151,14 +161,16 @@ if ($resultado && $resultado->num_rows > 0) {
   <i class="fab fa-whatsapp"></i>
 </a>
 
-       <a 
+<a 
   href="../../controlador/buzon_c.php?accion=eliminar&id=<?= $mensaje['id'] ?>" 
-  onclick="return confirm('¿Eliminar este mensaje?');" 
+  onclick="return confirmarEliminar(event, this)" 
   class="btn-icon" 
   title="Eliminar"
 >
   <i class="fas fa-trash-alt"></i>
 </a>
+
+
 
     </div>
 </div>
@@ -172,9 +184,37 @@ if ($resultado && $resultado->num_rows > 0) {
 
    
     <div class="modal-overlay"></div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../assets/js/admin/buzon.js"></script>
- 
+<script>
+  function confirmarEliminar(e, el) {
+    // Evita abrir el modal del mensaje (si el contenedor tiene click)
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Si por alguna razón SweetAlert no cargó, usa confirm nativo (fallback)
+    if (!window.Swal) {
+      return confirm('¿Eliminar este mensaje?');
+    }
+
+    Swal.fire({
+      title: "¿Eliminar este mensaje?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Redirige a tu PHP tal cual lo hacías
+        window.location.href = el.href;
+      }
+    });
+
+    // Impide que el enlace navegue mientras decides en el SweetAlert
+    return false;
+  }
+</script>
 
 </body>
 </html>

@@ -496,6 +496,13 @@ $totalPaginas = ceil($totalProductos / $limite);
   }
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: var(--secondary-blue);
+}
 </style>
 <body>
     <div class="dashboard">
@@ -510,15 +517,18 @@ $totalPaginas = ceil($totalProductos / $limite);
             <div class="sidebar-menu">
                 <ul>
                  <li><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li class="active"><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
+                    <li class="active"><a href="inventario_v.php"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-box"></i></i>Pedidos</a></li>
     <li><a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
 
                        <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
+            </div>
+               <div class="sidebar-footer">
+                <p>© 2024 NISSI Cerrajería</p>
             </div>
         </aside>
 
@@ -816,28 +826,56 @@ $totalPaginas = ceil($totalProductos / $limite);
 
     <script src="../../assets/js/admin/inventario.js"></script>
 
-    <script>
-       function eliminarInventario(id) {
-  if (confirm("¿Estás seguro de eliminar este producto del inventario?")) {
-    fetch("../../controlador/inventario_c.php?accion=eliminar&id=" + id)
-      .then(response => response.text())
-      .then(data => {
-        data = data.trim();
-        if (data === "eliminado") {
-          alert("Producto eliminado correctamente.");
-          location.reload();
-       
-        } else {
-          alert("No se puede eliminar porque existen ventas con este producto. " );
-        }
-      })
-      .catch(error => {
-        alert("Error al eliminar: " + error.message);
-      });
-  }
-}
+   <!-- Asegúrate de tener SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    </script>
+<script>
+function eliminarInventario(id) {
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "Este producto será eliminado del inventario",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar"
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch("../../controlador/inventario_c.php?accion=eliminar&id=" + id)
+        .then(response => response.text())
+        .then(data => {
+          data = data.trim();
+          if (data === "eliminado") {
+            Swal.fire({
+              title: "Eliminado",
+              text: "Producto eliminado correctamente.",
+              icon: "success",
+              confirmButtonColor: "#3085d6"
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({
+              title: "No se puede eliminar",
+              text: "Existen ventas asociadas con este producto.",
+              icon: "error",
+              confirmButtonColor: "#3085d6"
+            });
+          }
+        })
+        .catch(error => {
+          Swal.fire({
+            title: "Error",
+            text: "Error al eliminar: " + error.message,
+            icon: "error",
+            confirmButtonColor: "#3085d6"
+          });
+        });
+    }
+  });
+}
+</script>
     
 </body>
 </html>

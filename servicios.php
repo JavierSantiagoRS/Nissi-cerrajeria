@@ -176,7 +176,7 @@ include 'conexion.php';
              <li><a href="index.php#inicio">Inicio</a></li>
                         <li><a href="#servicios"  class="active">Servicios</a></li>
                         <li><a href="index.php#nosotros">Nosotros</a></li>
-                        <li><a href="index.php#galeria">Galería</a></li>
+                        <li><a href="index.php#galeria">Productos</a></li>
                         <li><a href="index.php#contacto">Contacto</a></li>
         
                         <?php
@@ -269,7 +269,7 @@ $id_usuario = isset($_SESSION['id_usuario']) ? $_SESSION['id_usuario'] : "Invita
 
 </section>
 
-
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <script src="assets/js/cliente.js"></script>
 <script>
 function enviarFormularioYRedirigir(event, id, nombre, precio) {
@@ -286,7 +286,11 @@ function enviarFormularioYRedirigir(event, id, nombre, precio) {
         }
     });
     if(validoExistencia){
-        alert("Ups! este servicio ya fue agregado");
+             Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "Este servicio ya fue agregado!",
+});
             return;
     }
 
@@ -375,7 +379,13 @@ const usuarioLogueado = <?php echo isset($_SESSION['id_usuario']) ? 'true' : 'fa
 
 function enviarYRedirigirWhatsApp(formId, urlWA) {
     if (!usuarioLogueado) {
-        alert("Debes iniciar sesión para solicitar un servicio.");
+  
+        Swal.fire({
+  title: "Debes iniciar sesión para solicitar un servicio.",
+  icon: "warning",
+  draggable: true
+});
+
         window.location.href = "vistas/login.php";
         return;
     }

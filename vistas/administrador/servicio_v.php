@@ -32,7 +32,7 @@ $totalPaginas = ceil($totalservicio / $limite);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>servicio - NISSI Cerrajería</title>
+    <title>servicios - NISSI Cerrajería</title>
     <link rel="stylesheet" href="../../assets/css/admin/servicios.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="../../assets/bootstrap/js/bootstrap.bundle.js" ></script>
@@ -493,6 +493,13 @@ $totalPaginas = ceil($totalservicio / $limite);
   }
 }
 
+.sidebar-footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: var(--secondary-blue);
+}
 </style>
 <body>
 
@@ -508,15 +515,18 @@ $totalPaginas = ceil($totalservicio / $limite);
             <div class="sidebar-menu">
                 <ul>
                       <li ><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
+                    <li><a href="inventario_v.php"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li class="active"><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-box"></i>Pedidos</a></li>
     <li><a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
 
           <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
+            </div>
+              <div class="sidebar-footer">
+                <p>© 2024 NISSI Cerrajería</p>
             </div>
         </aside>
 
@@ -804,28 +814,54 @@ $totalPaginas = ceil($totalservicio / $limite);
     <div class="modal-overlay"></div>
 
     <script src="../../assets/js/admin/servicio.js"></script>
-
-        <script>
-       function eliminarservicio(id) {
-  if (confirm("¿Estás seguro de eliminar este servicio?")) {
-    fetch("../../controlador/servicios_c.php?accion=eliminar&id=" + id)
-      .then(response => response.text())
-      .then(data => {
-        data = data.trim();
-        if (data === "eliminado") {
-          alert("Servicio eliminado correctamente.");
-          location.reload();
-       
-        } else {
-          alert("No se puede eliminar porque existen ventas con este servicio. " );
-        }
-      })
-      .catch(error => {
-        alert("Error al eliminar: " + error.message);
-      });
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  function eliminarservicio(id) {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "No podrás deshacer esta acción",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch("../../controlador/servicios_c.php?accion=eliminar&id=" + id)
+          .then(response => response.text())
+          .then(data => {
+            data = data.trim();
+            if (data === "eliminado") {
+              Swal.fire({
+                icon: "success",
+                title: "Eliminado",
+                text: "Servicio eliminado correctamente",
+                timer: 1500,
+                showConfirmButton: false
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "No se puede eliminar",
+                text: "Existen ventas con este servicio."
+              });
+            }
+          })
+          .catch(error => {
+            Swal.fire({
+              icon: "error",
+              title: "Error al eliminar",
+              text: error.message
+            });
+          });
+      }
+    });
   }
-}
+</script>
 
-    </script>
+
 </body>
 </html>

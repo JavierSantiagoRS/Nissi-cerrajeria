@@ -11,7 +11,7 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NISSI Cerrajería - Servicios de Cerrajería Profesional</title>
+    <title>NISSI Cerrajería - Productos de Cerrajería Profesional</title>
     <link rel="stylesheet" href="assets/css/cliente.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -301,7 +301,7 @@ if ($result->num_rows > 0) {
 </section>
 
  <script src="assets/js/cliente.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function enviarFormularioYRedirigir(event, id, nombre, precio) {
     event.preventDefault(); // Evita que el enlace se abra de inmediato
@@ -397,7 +397,12 @@ $usuario_logueado = isset($_SESSION['usuario']); // Cambia por tu variable real 
     // Validar si ya está agregado
     const existe = productos.some(item => item.id === id);
     if (existe) {
-        alert("Ups! este producto ya fue agregado");
+              Swal.fire({
+  icon: "error",
+  title: "Oops...",
+  text: "Este producto ya fue agregado!",
+  
+});
         return;
     }
 
@@ -417,7 +422,14 @@ $usuario_logueado = isset($_SESSION['usuario']); // Cambia por tu variable real 
     cantidadCarro();
 
     // Opcional: notificación visual
-    alert(nombre + " ha sido añadido al carrito");
+Swal.fire({
+  position: "top-end",
+  icon: "success",
+ title: nombre + " ha sido añadido al carrito",
+  showConfirmButton: false,
+  timer: 1500
+});
+   
 }
 
     </script>

@@ -16,6 +16,7 @@ if (!$id_venta) {
 
 $sql = "SELECT 
             p.id,
+            v.id_cliente,
             COALESCE(pr.titulo, s.nombre) AS nombre_item,
             CASE
                 WHEN p.id_producto IS NOT NULL THEN 'Producto'
@@ -24,7 +25,8 @@ $sql = "SELECT
             END AS tipo,
             p.cantidad,
             p.subtotal
-        FROM pedidos p
+        FROM ventas v
+        INNER JOIN pedidos p ON v.id = p.id_venta
         LEFT JOIN inventario pr ON p.id_producto = pr.id
         LEFT JOIN servicios s ON p.id_servicio = s.id
         WHERE p.id_venta = ?";
@@ -35,9 +37,18 @@ $stmt->bind_param("i", $id_venta);
 $stmt->execute();
 $result = $stmt->get_result();
 
+
+
 $pedidos = [];
 while ($row = $result->fetch_assoc()) {
     $pedidos[] = $row;
 }
 
-echo json_encode(['success' => true, 'pedidos' => $pedidos]);
+$sql = "SELECT * FROM usuarios WHERE id = ? LIMIT 1";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $pedidos[0]['id_cliente']);
+$stmt->execute();
+$result = $stmt->get_result();
+$cliente = $result->fetch_assoc();
+
+echo json_encode(['success' => true, 'pedidos' => $pedidos, 'cliente' => $cliente]);

@@ -10,6 +10,15 @@ if (!isset($_SESSION["id_usuario"])) {
 include '../../conexion.php';
 include '../../modelos/venta_m.php';
 
+include '../../modelos/indexcliente_m.php';
+include '../../controlador/ventascliente_c.php';
+$idUsuario = $_SESSION["id_usuario"];
+$ventas = obtenerVentasCliente($conn, $idUsuario);
+$sql_ventas_confirmadas = "SELECT COUNT(*) AS total FROM ventas ";
+$total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
+
+// Todas las ventas del cliente
+$ventas = obtenerVentasCliente($conn, $idUsuario);
 
 
 $filtro = $_GET['filtro'] ?? 'fecha_desc';
@@ -49,15 +58,17 @@ $ventas = obtenerVentasPaginadas($conn, $inicio, $limite, $filtro, $estado);
 // Calcular total de páginas
 $totalPaginas = ceil($totalVentas / $limite);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clientes - NISSI Cerrajería</title>
+    <title>Ventas - NISSI Cerrajería</title>
     <link rel="stylesheet" href="../../assets/css/admin/venta.css">
     <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.bundle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
 </head>
 <style>
     .badge {
@@ -511,6 +522,14 @@ $totalPaginas = ceil($totalVentas / $limite);
     padding: 20px 15px;
   }
 }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 15px;
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: var(--secondary-blue);
+}
 </style>
 <body>
     <div class="dashboard">
@@ -525,14 +544,17 @@ $totalPaginas = ceil($totalVentas / $limite);
             <div class="sidebar-menu">
                 <ul>
                     <li><a href="index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="inventario_v.php"><i class="fas fa-box"></i> Inventario</a></li>
+                    <li><a href="inventario_v.php"><i class="fas fa-boxes"></i> Inventario</a></li>
                     <li><a href="clientes_v.php"><i class="fas fa-users"></i> Clientes</a></li>
                      <li><a href="buzon_v.php"><i class="fas fa-envelope"></i>Buzón</a></li>
  <li><a href="servicio_v.php"><i class="fas fa-tools"></i> servicios</a></li>
-  <li><a href="pedido_v.php"><i class="fas fa-tools"></i>Pedidos</a></li>
+  <li><a href="pedido_v.php"><i class="fas fa-box"></i>Pedidos</a></li>
     <li class="active"> <a href="venta_v.php"><i class="fas fa-shopping-cart"></i>Ventas</a></li>
  <li><a href="../../logout.php">Cerrar Sesión</a></li>
                 </ul>
+            </div>
+                 <div class="sidebar-footer">
+                <p>© 2024 NISSI Cerrajería</p>
             </div>
         </aside>
 
@@ -567,19 +589,10 @@ $totalPaginas = ceil($totalVentas / $limite);
 
                 <!-- Resumen de clientes -->
                 <div class="clients-summary">
-                    <div class="summary-card">
-                        <div class="summary-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="summary-info">
-                            <h4>Total ventas</h4>
-                    <p class="summary-value"><?php echo $totalVentas; ?></p>
-
-                        </div>
-                    </div>
+          
                       <div class="summary-card">
                         <div class="summary-icon">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="summary-info">
                         <h4>Ventas pendientes</h4>
@@ -590,7 +603,7 @@ $totalPaginas = ceil($totalVentas / $limite);
                     </div>
                         <div class="summary-card">
                         <div class="summary-icon">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="summary-info">
                         <h4>Ventas confirmadas</h4>
@@ -601,7 +614,7 @@ $totalPaginas = ceil($totalVentas / $limite);
                     </div>
                       <div class="summary-card">
                         <div class="summary-icon">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="summary-info">
                         <h4>Ventas canceladas</h4>
@@ -623,11 +636,11 @@ $totalPaginas = ceil($totalVentas / $limite);
     </select>
 
     <!-- Ordenar por fecha -->
-    <select name="fecha" class="form-select" onchange="this.form.submit()">
-      <option value="">Ordenar por Fecha</option>
-      <option value="asc" <?= ($_GET['fecha'] ?? '') == "asc" ? "selected" : "" ?>>Más antiguas</option>
-      <option value="desc" <?= ($_GET['fecha'] ?? '') == "desc" ? "selected" : "" ?>>Más recientes</option>
-    </select>
+   <select name="filtro" class="form-select" onchange="this.form.submit()">
+  <option value="fecha_desc" <?= ($_GET['filtro'] ?? '') == "fecha_desc" ? "selected" : "" ?>>Más recientes</option>
+  <option value="fecha_asc" <?= ($_GET['filtro'] ?? '') == "fecha_asc" ? "selected" : "" ?>>Más antiguas</option>
+</select>
+
 
   </form>
 </div>
@@ -651,29 +664,35 @@ $totalPaginas = ceil($totalVentas / $limite);
                             </thead>
 
 <tbody>
-    <?php foreach ($ventas as $venta): ?>
-       <tr data-id="<?= $venta['id'] ?>" data-estado="<?= $venta['estado'] ?>">
+<?php foreach ($ventas as $venta): ?>
+   <tr data-id="<?= $venta['id'] ?>" data-estado="<?= $venta['estado'] ?>">
+        <td><?= htmlspecialchars($venta['nombre_cliente'])?></td>
+        <td><?= htmlspecialchars($venta['id_cliente']) ?></td>
+        <td class="price">$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
+        <td><?= htmlspecialchars(date("d/m/Y H:i A", strtotime($venta['fecha']))) ?></td>
+        <td class="estado">
+            <span class="badge badge-<?= $venta['estado'] ?>">
+                <?= ucfirst($venta['estado']) ?>
+            </span>
+        </td>
 
-            <td><?=  htmlspecialchars($venta['nombre_cliente'])?></td>
-            <td><?= htmlspecialchars($venta['id_cliente']) ?></td>
-                      <td>$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
-            <td><?= htmlspecialchars(date("d/m/Y H:i A", strtotime($venta['fecha']))) ?></td>
-            <td class="estado">
-    <span class="badge badge-<?= $venta['estado'] ?>">
-        <?= ucfirst($venta['estado']) ?>
-    </span>
-</td>
+        <td>
+            <button class="btn-confirmar btn btn-success btn-sm">Confirmar</button>
+            <button class="btn-cancelar btn btn-danger btn-sm">Cancelar</button>
+            <button class="btn-eliminar"><i class="fas fa-trash-alt"></i></button>
+            <!-- 👁 Botón ver pedidos (abre modal dinámico) -->
+            <button class="btn-ver-pedidos btn btn-info btn-sm">
+              <i class="fas fa-eye"></i> Ver pedidos
+            </button>
+            <!-- 🧾 Botón ver factura -->
+            <button class="ver-pedidos-btn" onclick="verFactura(<?= $venta['id'] ?>)">
+              <i class="fas fa-file-invoice"></i> Ver factura
+            </button>
+        </td>
+    </tr>
+<?php endforeach; ?>
 
-            <td>
-                <button class="btn-confirmar btn btn-success btn-sm">Confirmar</button>
-                <button class="btn-cancelar btn btn-danger btn-sm">Cancelar</button>
-                <button class="btn-eliminar"> <i class="fas fa-trash-alt"></i></button>
-                <button class="btn-ver-pedidos btn btn-info btn-sm"> <i class="fas fa-eye"></i></button>
 
-            </td>
-        </tr>
-    <?php endforeach; ?>
-</tbody>
 
 
                         </table>
@@ -741,11 +760,192 @@ $totalPaginas = ceil($totalVentas / $limite);
     </div>
   </div>
 </div>
+<!-- Modal Factura -->
+<div id="facturaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <h2 style="margin-bottom:15px;"><i class="fas fa-file-invoice"></i> Factura</h2>
+    <div id="facturaContenido"></div>
+    <div style="text-align:right; margin-top:15px;">
+      <button onclick="cerrarFactura()" class="ver-pedidos-btn" style="background:#ef4444;">
+        <i class="fas fa-times"></i> Cerrar
+      </button>
+     <button onclick="imprimirFactura()" class="ver-pedidos-btn" style="background:#16a34a; margin-right:10px;">
+  <i class="fas fa-download"></i> Descargar PDF
+</button>
 
+
+    </div>
+  </div>
+</div>
 
 
    <script src="../../assets/js/admin/venta.js"></script>
    <script src="../../assets\bootstrap\js\bootstrap.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <script>
+
+function verFactura(idVenta) {
+    // Buscar fila por data-id
+    const fila = document.querySelector(`tr[data-id="${idVenta}"]`);
+    if (!fila) return;
+
+    // Datos básicos
+    const cliente = fila.cells[0].innerText;
+    const idCliente = fila.cells[1].innerText;
+    const total = fila.cells[2].innerText;
+    const fecha = fila.cells[3].innerText;
+
+    // Pedidos (los obtenemos vía fetch igual que en el modal)
+    fetch('../../controlador/pedidos_por_venta.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_venta: idVenta })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let tablaPedidos = '';
+
+        if (data.success && data.pedidos.length > 0) {
+            tablaPedidos = `
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" style="margin-top:10px;">
+                <thead>
+                    <tr>
+                        <th>Producto/Servicio</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.pedidos.map(p => `
+                        <tr>
+                            <td>${p.nombre_item}</td>
+                            <td>${p.cantidad}</td>
+                            <td>$${parseInt(p.subtotal).toLocaleString()} COP</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>`;
+        } else {
+            tablaPedidos = '<p>No hay pedidos.</p>';
+        }
+
+        // Contenido del modal
+        const contenido = `
+            <p><strong>Cliente:</strong> ${data.cliente.usuario}</p>
+            <p><strong>Dirección:</strong> ${data.cliente.calle}, ${data.cliente.ciudad}, ${data.cliente.departamento}, ${data.cliente.codigo_postal}</p>
+
+            <p><strong>Email:</strong> ${data.cliente.correo}</p>
+            <p><strong>Teléfono:</strong> ${data.cliente.celular}</p>
+            <p><strong>Fecha:</strong> ${fecha}</p>
+            <p><strong>Total:</strong> ${total}</p>
+            <h3 style="margin-top:10px;">Detalles:</h3>
+            ${tablaPedidos}
+        `;
+
+        document.getElementById('facturaContenido').innerHTML = contenido;
+        document.getElementById('facturaModal').style.display = 'flex';
+    });
+}
+
+
+
+function cerrarFactura() {
+  document.getElementById('facturaModal').style.display = 'none';
+}
+
+function imprimirFactura() {
+  const contenido = document.getElementById("facturaContenido").innerHTML;
+
+  const ventana = window.open("", "_blank", "width=800,height=600");
+  ventana.document.write(`
+    <html>
+      <head>
+        <title>Factura</title>
+        <style>
+          body { font-family: 'Arial', sans-serif; padding: 30px; color: #333; }
+          .factura-box {
+            max-width: 700px;
+            margin: auto;
+            border: 1px solid #eee;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,.15);
+          }
+          .factura-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+          }
+          .factura-header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: #16a34a;
+          }
+          .factura-info {
+            margin-bottom: 20px;
+          }
+          .factura-info p {
+            margin: 4px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+          }
+          table, th, td {
+            border: 1px solid #ccc;
+          }
+          th {
+            background: #16a34a;
+            color: white;
+            padding: 8px;
+            text-align: left;
+          }
+          td {
+            padding: 8px;
+          }
+          .total {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="factura-box">
+          <div class="factura-header">
+            <h1>Nissi Cerrajeria</h1>
+          </div>
+
+          <div class="factura-info">
+            <p><strong>Empresa:</strong> NISSI Cerrajería</p>
+            <p><strong>Dirección:</strong> Calle Falsa 123, Neiva, Huila</p>
+          </div>
+
+          ${contenido}
+
+          <div class="footer">
+            <p>Gracias por su compra 💚</p>
+            <p>Esta factura fue generada automáticamente por el sistema.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+  ventana.document.close();
+  ventana.print();
+}
+</script>
 
 <script>
     document.querySelectorAll('.btn-ver-pedidos').forEach(btn => {
@@ -785,31 +985,53 @@ $totalPaginas = ceil($totalVentas / $limite);
 
 </script>
    
-   <script>
+  <script>
 document.addEventListener("DOMContentLoaded", () => {
+    // --- Eliminar venta ---
     document.querySelectorAll(".btn-eliminar").forEach(btn => {
-    btn.addEventListener("click", function () {
-        if (!confirm("¿Estás seguro de eliminar esta venta?")) return;
+        btn.addEventListener("click", function () {
+            const id = this.closest("tr").getAttribute("data-id");
 
-        const id = this.closest("tr").getAttribute("data-id");
+            Swal.fire({
+                title: "¿Eliminar venta?",
+                text: "Esta acción no se puede deshacer",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch("../../controlador/venta_c.php", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Elimina la fila
+                            document.querySelector(`tr[data-id='${id}']`).remove();
 
-        fetch("../../controlador/venta_c.php", {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.querySelector(`tr[data-id='${id}']`).remove();
-            } else {
-                alert("Error al eliminar: " + data.error);
-            }
-        })
-        .catch(err => alert("Error de red: " + err));
+                            Swal.fire({
+                                icon: "success",
+                                title: "Eliminado",
+                                text: "La venta fue eliminada con éxito",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire("Error", data.error, "error");
+                        }
+                    })
+                    .catch(err => {
+                        Swal.fire("Error de red", err.message, "error");
+                    });
+                }
+            });
+        });
     });
-});
 
+    // --- Confirmar / Cancelar venta ---
     document.querySelectorAll(".btn-confirmar").forEach(btn => {
         btn.addEventListener("click", function () {
             const id = this.closest("tr").getAttribute("data-id");
@@ -824,43 +1046,47 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-  function actualizarEstadoVenta(id, estado) {
-    fetch("../../controlador/venta_c.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, estado })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            const fila = document.querySelector(`tr[data-id='${id}']`);
-            const badge = fila.querySelector(".estado .badge");
+    function actualizarEstadoVenta(id, estado) {
+        fetch("../../controlador/venta_c.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, estado })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const fila = document.querySelector(`tr[data-id='${id}']`);
+                const badge = fila.querySelector(".estado .badge");
 
-            // Cambiar el texto
-            badge.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
+                badge.textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
+                badge.classList.remove("badge-pendiente", "badge-confirmada", "badge-cancelada");
+                badge.classList.add(`badge-${estado}`);
 
-            // Quitar clases anteriores
-            badge.classList.remove("badge-pendiente", "badge-confirmada", "badge-cancelada");
+                Swal.fire({
+                    icon: "success",
+                    title: "Actualizado",
+                    text: `La venta se marcó como ${estado}`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire("Error", data.error, "error");
+            }
+        })
+        .catch(err => Swal.fire("Error de red", err.message, "error"));
+    }
 
-            // Agregar la clase nueva según estado
-            badge.classList.add(`badge-${estado}`);
-        } else {
-            alert("Error al actualizar estado: " + data.error);
-        }
-    })
-    .catch(err => alert("Error de red: " + err));
-}
-
-});
-document.getElementById("filtroEstado").addEventListener("change", function() {
-    const filtro = this.value.toLowerCase();
-    document.querySelectorAll("#tablaPedidos tbody tr").forEach(fila => {
-        const estado = fila.getAttribute("data-estado").toLowerCase();
-        fila.style.display = (filtro === "" || estado === filtro) ? "" : "none";
+    // --- Filtro de estado ---
+    document.getElementById("filtroEstado").addEventListener("change", function() {
+        const filtro = this.value.toLowerCase();
+        document.querySelectorAll("#tablaPedidos tbody tr").forEach(fila => {
+            const estado = fila.getAttribute("data-estado").toLowerCase();
+            fila.style.display = (filtro === "" || estado === filtro) ? "" : "none";
+        });
     });
 });
-
 </script>
+
 
 
 

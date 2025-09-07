@@ -19,7 +19,7 @@ include 'conexion.php';
 
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #b4b5bbff 0%, #b7bad8e5 100%);
       color: #333;
       line-height: 1.5;
       padding: 2rem 1rem;
@@ -430,99 +430,125 @@ include 'conexion.php';
       </button>
     </div>
   </div>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-  function enviarCompra() {
-  if (!confirm("¿Confirmar compra?")) return;
+function enviarCompra() {
+  Swal.fire({
+    title: "¿Confirmar compra?",
+    text: "Esta acción no se puede deshacer",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Sí, comprar",
+    cancelButtonText: "Cancelar"
+  }).then((result) => {
+    if (!result.isConfirmed) return; // si cancela, no hace nada
 
-  const confirmBtn = document.getElementById('confirmBtn');
-  confirmBtn.innerHTML = '<span class="spinner"></span>Procesando...';
-  confirmBtn.disabled = true;
+    const confirmBtn = document.getElementById('confirmBtn');
+    confirmBtn.innerHTML = '<span class="spinner"></span>Procesando...';
+    confirmBtn.disabled = true;
 
-  const productos = JSON.parse(sessionStorage.getItem("productos")) || [];
-  const servicios = JSON.parse(sessionStorage.getItem("servicios")) || [];
+    const productos = JSON.parse(sessionStorage.getItem("productos")) || [];
+    const servicios = JSON.parse(sessionStorage.getItem("servicios")) || [];
 
-  // Verificar si hay algo en el carrito
-  if (productos.length === 0 && servicios.length === 0) {
-    alert("No hay productos ni servicios en el carrito.");
-    confirmBtn.innerHTML = 'Confirmar Compra';
-    confirmBtn.disabled = false;
-    return;
-  }
-
-  let total = 0;
-  productos.forEach(p => total += Number(p.subtotal));
-  servicios.forEach(s => total += Number(s.subtotal));
-
-  const data = {
-    total: total,
-    productos: productos,
-    servicios: servicios
-  };
-
-  fetch("controlador/carrito_c.php", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then(res => res.json())
-    .then(respuesta => {
-      console.log("Respuesta del servidor:", respuesta);
-
-      if (respuesta.status === "ok") {
-        alert("Compra registrada con éxito");
-
-        // Construir mensaje de WhatsApp
-        let mensaje = "Nuevo pedido - NISSI Cerrajería%0A";
-        mensaje += "--------------------------------%0A";
-
-        if (productos.length > 0) {
-          mensaje += "*Productos:*%0A";
-          productos.forEach(p => {
-            mensaje += `- ${p.nombre} x${p.cantidad} = $${Number(p.subtotal).toLocaleString()}%0A`;
-          });
-        }
-
-        if (servicios.length > 0) {
-          mensaje += "%0A*Servicios:*%0A";
-          servicios.forEach(s => {
-            mensaje += `- ${s.nombre} x${s.cantidad} = $${Number(s.subtotal).toLocaleString()}%0A`;
-          });
-        }
-
-        mensaje += "%0A--------------------------------%0A";
-        mensaje += `*Total:* $${total.toLocaleString()}%0A`;
-        mensaje += "Fecha: " + new Date().toLocaleDateString("es-CO");
-
-        // Número de WhatsApp (con código de país, sin + ni espacios)
-        let numero = "573001234567";
-        let url = `https://api.whatsapp.com/send?phone=${numero}&text=${mensaje}`;
-
-        window.open(url, "_blank");
-
-        // Limpiar carrito y actualizar
-        sessionStorage.removeItem("servicios");
-        sessionStorage.removeItem("productos");
-        mostrarDatos();
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      } else {
-        alert("Necesitas iniciar sesión para realizar la compra.");
-         window.location.href = "vistas/login.php"; 
-      }
-    })
-    .catch(error => {
-      alert("Error al enviar la compra.");
-      console.error(error);
-    })
-    .finally(() => {
+    // Verificar si hay algo en el carrito
+    if (productos.length === 0 && servicios.length === 0) {
+      Swal.fire({
+        title: "Carrito vacío",
+        text: "No hay productos ni servicios en el carrito.",
+        icon: "info"
+      });
       confirmBtn.innerHTML = 'Confirmar Compra';
       confirmBtn.disabled = false;
+      return;
+    }
+
+    let total = 0;
+    productos.forEach(p => total += Number(p.subtotal));
+    servicios.forEach(s => total += Number(s.subtotal));
+
+    const data = {
+      total: total,
+      productos: productos,
+      servicios: servicios
+    };
+
+    fetch("controlador/carrito_c.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then(res => res.json())
+    .then(respuesta => {
+  console.log("Respuesta del servidor:", respuesta);
+
+  if (respuesta.status === "ok") {
+    Swal.fire({
+      title: "Compra registrada con éxito!",
+      icon: "success"
     });
+
+    // Construir mensaje de WhatsApp
+    let mensaje = "";
+    mensaje += "";
+    mensaje += `Hola, soy el usuario ID: ${respuesta.id_usuario}%0A%0A y quiero `; // <-- Aquí agregamos el id del usuario
+
+    if (productos.length > 0) {
+      mensaje += "*Productos:*%0A";
+      productos.forEach(p => {
+        mensaje += `- ${p.nombre} x${p.cantidad} %0A`;
+      });
+    }
+
+    if (servicios.length > 0) {
+      mensaje += "%0A*Servicios:*%0A";
+      servicios.forEach(s => {
+        mensaje += `- ${s.nombre} x${s.cantidad}%0A`;
+      });
+    }
+
+   
+   
+
+    // Número de WhatsApp (con código de país, sin + ni espacios)
+    let numero = "573001234567";
+    let url = `https://api.whatsapp.com/send?phone=${numero}&text=${mensaje}`;
+
+    window.open(url, "_blank");
+
+    // Limpiar carrito y actualizar
+    sessionStorage.removeItem("servicios");
+    sessionStorage.removeItem("productos");
+    mostrarDatos();
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  } else {
+    Swal.fire({
+      title: "Acceso requerido",
+      text: "Necesitas iniciar sesión para realizar la compra.",
+      icon: "warning"
+    }).then(() => {
+      window.location.href = "vistas/login.php";
+    });
+  }
+})
+
+      .catch(error => {
+        Swal.fire({
+          title: "Error",
+          text: "Error al enviar la compra.",
+          icon: "error"
+        });
+        console.error(error);
+      })
+      .finally(() => {
+        confirmBtn.innerHTML = 'Confirmar Compra';
+        confirmBtn.disabled = false;
+      });
+  });
 }
 
 

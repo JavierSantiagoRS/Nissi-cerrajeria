@@ -271,9 +271,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     deleteBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      if (confirm("¿Estás seguro de que quieres eliminar este mensaje?")) {
-        deleteMessageById(message.id);
-      }
+
+      Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Este mensaje se eliminará permanentemente",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          deleteMessageById(message.id);
+          Swal.fire(
+            "Eliminado",
+            "El mensaje fue eliminado con éxito",
+            "success"
+          );
+        }
+      });
     });
 
     // Click en el mensaje para abrirlo

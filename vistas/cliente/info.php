@@ -2,37 +2,50 @@
 session_start();
 if (!isset($_SESSION["id_usuario"])) {
     header("Location: login.php");
+    exit();
 }
+
 include '../../conexion.php';
 include '../../modelos/indexcliente_m.php';
 include '../../controlador/ventascliente_c.php';
+
 $idUsuario = $_SESSION["id_usuario"];
-$ventas = obtenerVentasCliente($conn, $idUsuario);
-$sql_ventas_confirmadas = "SELECT COUNT(*) AS total FROM ventas WHERE estado = 'confirmada'";
-$total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
 
-// Todas las ventas del cliente
+// Obtener datos del usuario (incluyendo dirección)
+$stmt = $conn->prepare("SELECT * FROM usuarios WHERE id = ?");
+$stmt->bind_param("i", $idUsuario);
+$stmt->execute();
+$result = $stmt->get_result();
+$usuario = $result->fetch_assoc();
+
+// Obtener todas las ventas del cliente
 $ventas = obtenerVentasCliente($conn, $idUsuario);
 
-// Confirmadas
+// Ventas confirmadas
 $ventas_confirmadas = array_filter($ventas, function($venta) {
     return strtolower($venta['estado']) === 'confirmada';
 });
 
-// Pendientes
+// Ventas pendientes
 $ventas_pendientes = array_filter($ventas, function($venta) {
     return strtolower($venta['estado']) === 'pendiente';
 });
 
 // Total confirmadas + pendientes
 $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendientes);
+
+// Total ventas confirmadas global
+$sql_ventas_confirmadas = "SELECT COUNT(*) AS total FROM ventas WHERE estado = 'confirmada'";
+$total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
 ?>
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil del Cliente</title>
+  <title>NISSI Cerrajería - Información del Cliente</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -66,7 +79,7 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+         background: linear-gradient(135deg, #b4b5bbff 0%, #b7bad8e5 100%);
       min-height: 100vh;
       color: var(--text-primary);
       line-height: 1.6;
@@ -573,53 +586,66 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
     <div class="main-content">
       <div class="content-grid">
          
-        <div class="info-panel">
-          <h2>
-            <i class="fas fa-user-circle"></i>
-            Datos Personales
-          </h2>
-          
-          <div class="info-item">
-            <div class="info-icon">
-              <i class="fas fa-user"></i>
-            </div>
-            <div class="info-content">
-              <div class="info-label">Nombre completo</div>
-              <div class="info-value"><?= htmlspecialchars($usuario['usuario']) ?></div>
-            </div>
-          </div>
+<div class="info-panel">
+  <h2>
+    <i class="fas fa-user-circle"></i>
+    Datos Personales
+  </h2>
 
-          <div class="info-item">
-            <div class="info-icon">
-              <i class="fas fa-envelope"></i>
-            </div>
-            <div class="info-content">
-              <div class="info-label">Correo electrónico</div>
-              <div class="info-value"><?= htmlspecialchars($usuario['correo']) ?></div>
-            </div>
-          </div>
+  <div class="info-item">
+    <div class="info-icon">
+      <i class="fas fa-user"></i>
+    </div>
+    <div class="info-content">
+      <div class="info-label">Nombre completo</div>
+      <div class="info-value"><?= htmlspecialchars($usuario['usuario']) ?></div>
+    </div>
+  </div>
 
-          <div class="info-item">
-            <div class="info-icon">
-              <i class="fas fa-phone"></i>
-            </div>
-            <div class="info-content">
-              <div class="info-label">Teléfono</div>
-              <div class="info-value">+57 <?= htmlspecialchars($usuario['celular']) ?></div>
-            </div>
-          </div>
+  <div class="info-item">
+    <div class="info-icon">
+      <i class="fas fa-envelope"></i>
+    </div>
+    <div class="info-content">
+      <div class="info-label">Correo electrónico</div>
+      <div class="info-value"><?= htmlspecialchars($usuario['correo']) ?></div>
+    </div>
+  </div>
 
-          <div class="info-item">
-            <div class="info-icon">
-              <i class="fas fa-calendar-alt"></i>
-            </div>
-            <div class="info-content">
-              <div class="info-label">Fecha de registro</div>
-              <div class="info-value"><?= htmlspecialchars(date("d/m/Y H:i A", strtotime($usuario['fecha_registro']))) ?></div>
-            </div>
-          </div>
-        </div>
+  <div class="info-item">
+    <div class="info-icon">
+      <i class="fas fa-phone"></i>
+    </div>
+    <div class="info-content">
+      <div class="info-label">Teléfono</div>
+      <div class="info-value">+57 <?= htmlspecialchars($usuario['celular']) ?></div>
+    </div>
+  </div>
 
+  <div class="info-item">
+    <div class="info-icon">
+      <i class="fas fa-map-marker-alt"></i>
+    </div>
+    <div class="info-content">
+      <div class="info-label">Dirección</div>
+      <div class="info-value">
+        <?= 
+          htmlspecialchars(
+            trim($usuario['calle'] ?? '') . ', ' . 
+            trim($usuario['ciudad'] ?? '') . ', ' . 
+            trim($usuario['departamento'] ?? '') . ' - ' . 
+            trim($usuario['codigo_postal'] ?? '')
+          ) 
+        ?>
+      </div>
+      <button type="button" id="btn-editar-direccion" style="margin-top:5px; padding:0.25rem 0.5rem; font-size:0.75rem; background:var(--primary-color); color:white; border:none; border-radius:4px; cursor:pointer;">
+        Editar
+      </button>
+    </div>
+  </div>
+</div>
+
+        
      
         <div class="stats-panel">
           <h2>
@@ -640,5 +666,57 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
      
     </div>
   </div>
+
+<!-- Modal Dirección -->
+<div id="modal-direccion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:2rem; border-radius:var(--radius-lg); max-width:500px; width:90%; position:relative;">
+    <h2 style="margin-bottom:1rem;">Editar Dirección</h2>
+    <form id="form-direccion" method="POST" action="../../controlador/actualizar_direccion_c.php">
+      <label for="calle" style="font-weight:600; margin-top:0.5rem;">Calle y número</label>
+      <input type="text" name="calle" id="calle" value="<?= htmlspecialchars($usuario['calle'] ?? '') ?>" required
+        style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+
+      <label for="ciudad" style="font-weight:600; margin-top:0.5rem;">Ciudad</label>
+      <input type="text" name="ciudad" id="ciudad" value="<?= htmlspecialchars($usuario['ciudad'] ?? '') ?>" required
+        style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+
+      <label for="codigo_postal" style="font-weight:600; margin-top:0.5rem;">Código Postal</label>
+      <input type="text" name="codigo_postal" id="codigo_postal" value="<?= htmlspecialchars($usuario['codigo_postal'] ?? '') ?>" required maxlength="10"
+        style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+
+      <label for="departamento" style="font-weight:600; margin-top:0.5rem;">Departamento / Estado</label>
+      <input type="text" name="departamento" id="departamento" value="<?= htmlspecialchars($usuario['departamento'] ?? '') ?>" required
+        style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+
+      <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button type="button" id="btn-cerrar-modal" style="padding:0.5rem 1rem; border:none; background:#ef4444; color:white; border-radius:5px; cursor:pointer;">Cancelar</button>
+        <button type="submit" style="padding:0.5rem 1rem; border:none; background:var(--primary-color); color:white; border-radius:5px; cursor:pointer;">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<script>
+const modal = document.getElementById('modal-direccion');
+const btnEditar = document.getElementById('btn-editar-direccion');
+const btnCerrar = document.getElementById('btn-cerrar-modal');
+
+btnEditar.addEventListener('click', () => {
+    modal.style.display = 'flex';
+});
+
+btnCerrar.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+// Cerrar modal si hace clic fuera del contenido
+window.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+});
+</script>
+
+
 </body>
 </html>

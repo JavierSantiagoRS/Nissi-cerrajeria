@@ -32,7 +32,7 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Perfil del Cliente</title>
+  <title>NISSI Cerrajería - Compras del Cliente</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -66,7 +66,7 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #b4b5bbff 0%, #b7bad8e5 100%);
       min-height: 100vh;
       color: var(--text-primary);
       line-height: 1.6;
@@ -640,49 +640,56 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
               </thead>
               <tbody>
               <tbody>
-  <?php foreach ($ventas as $venta): ?>
-    <!-- Fila principal de la venta -->
-    <tr>
-      <td><?= $venta['fecha'] ?></td>
-      <td colspan="2">
-        <button class="ver-pedidos-btn" onclick="togglePedidos(<?= $venta['id_venta'] ?>)">
-          <i class="fas fa-eye"></i> Ver pedidos
-        </button>
-      </td>
-      <td class="price">$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
-      <td>
-        <span class="status-badge status-<?= strtolower($venta['estado']) ?>">
-          <?= ucfirst($venta['estado']) ?>
-        </span>
-      </td>
-    </tr>
+ <?php foreach ($ventas as $venta): ?>
+  <tr>
+    <td><?= $venta['fecha'] ?></td>
+    <td colspan="2">
+      <button class="ver-pedidos-btn" onclick="togglePedidos(<?= $venta['id_venta'] ?>)">
+        <i class="fas fa-eye"></i> Ver pedidos
+      </button>
 
-    <!-- Fila oculta con los pedidos -->
-    <tr id="pedidos-<?= $venta['id_venta'] ?>" style="display:none; background:#f9fafb;">
-      <td colspan="5">
-        <table style="width:100%; font-size:0.85rem; border-collapse:collapse; margin-top:10px;">
-          <thead>
-            <tr style="background:#f1f5f9;">
-              <th>Nombre</th>
-              <th>Cantidad</th>
-              <th>Tipo</th>
-              <th>Subtotal</th>
+      <?php if (strtolower($venta['estado']) === 'confirmada'): ?>
+        <button class="ver-pedidos-btn" style="background: var(--secondary-color);" 
+          onclick="verFactura(<?= $venta['id_venta'] ?>)">
+          <i class="fas fa-file-invoice"></i> Ver factura
+        </button>
+      <?php endif; ?>
+    </td>
+    <td class="price">$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
+    <td>
+      <span class="status-badge status-<?= strtolower($venta['estado']) ?>">
+        <?= ucfirst($venta['estado']) ?>
+      </span>
+    </td>
+  </tr>
+
+  <!-- Pedidos ocultos -->
+  <tr id="pedidos-<?= $venta['id_venta'] ?>" style="display:none; background:#f9fafb;">
+    <td colspan="5">
+      <table style="width:100%; font-size:0.85rem; border-collapse:collapse; margin-top:10px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th>Nombre</th>
+            <th>Cantidad</th>
+            <th>Tipo</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($venta['pedidos'] as $pedido): ?>
+            <tr>
+              <td><?= htmlspecialchars($pedido['nombre_item']) ?></td>
+              <td><?= $pedido['cantidad'] ?></td>
+              <td><?= ucfirst($pedido['tipo']) ?></td>
+              <td class="price">$<?= number_format($pedido['subtotal'], 0, ',', '.') ?> COP</td>
             </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($venta['pedidos'] as $pedido): ?>
-              <tr>
-                <td><?= htmlspecialchars($pedido['nombre_item']) ?></td>
-                <td><?= $pedido['cantidad'] ?></td>
-                <td><?= ucfirst($pedido['tipo']) ?></td>
-                <td class="price">$<?= number_format($pedido['subtotal'], 0, ',', '.') ?> COP</td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      </td>
-    </tr>
-  <?php endforeach; ?>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+<?php endforeach; ?>
+
 </tbody>
 
               </tbody>
@@ -699,11 +706,168 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
       </div>
     </div>
   </div>
+
+<!-- Modal Factura -->
+<div id="facturaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
+  <div style="background:white; padding:20px; border-radius:10px; max-width:600px; width:90%; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+    <h2 style="margin-bottom:15px;"><i class="fas fa-file-invoice"></i> Factura</h2>
+    <div id="facturaContenido"></div>
+    <div style="text-align:right; margin-top:15px;">
+      <button onclick="cerrarFactura()" class="ver-pedidos-btn" style="background:#ef4444;">
+        <i class="fas fa-times"></i> Cerrar
+      </button>
+     <button onclick="imprimirFactura()" class="ver-pedidos-btn" style="background:#16a34a; margin-right:10px;">
+  <i class="fas fa-download"></i> Descargar PDF
+</button>
+
+
+    </div>
+  </div>
+</div>
+
+
+
   <script>
 function togglePedidos(id) {
   const fila = document.getElementById('pedidos-' + id);
   fila.style.display = fila.style.display === 'none' ? '' : 'none';
 }
+
+function verFactura(idVenta) {
+  // Obtener datos de la fila correspondiente
+  const fila = document.getElementById('pedidos-' + idVenta);
+  if (!fila) return;
+
+  // Clonar tabla de pedidos
+  const tablaPedidos = fila.querySelector('table').outerHTML;
+
+  // Datos básicos de la venta
+  const total = fila.previousElementSibling.querySelector('.price').innerText;
+  const fecha = fila.previousElementSibling.cells[0].innerText;
+
+  // Contenido del modal
+  const contenido = `
+     <p><strong>Cliente:</strong>  <?= htmlspecialchars($usuario['usuario']) ?></p>
+     <p>
+  <strong>Dirección:</strong>  
+  <?= htmlspecialchars($usuario['calle']) ?>, 
+  <?= htmlspecialchars($usuario['ciudad']) ?>, 
+
+  <?= htmlspecialchars($usuario['departamento']) ?>, 
+    <?= htmlspecialchars($usuario['codigo_postal']) ?>, 
+
+</p>
+
+    <p><strong>Email:</strong><?= htmlspecialchars($usuario['correo']) ?></p>
+    <p><strong>Telefono:</strong>  +57 <?= htmlspecialchars($usuario['celular']) ?></p>
+    <p><strong>Fecha:</strong> ${fecha}</p>
+    <p><strong>Total:</strong> ${total}</p>
+    <h3 style="margin-top:10px;">Detalles:</h3>
+    ${tablaPedidos}
+  `;
+
+  document.getElementById('facturaContenido').innerHTML = contenido;
+  document.getElementById('facturaModal').style.display = 'flex';
+}
+
+function cerrarFactura() {
+  document.getElementById('facturaModal').style.display = 'none';
+}
+
+function imprimirFactura() {
+  const contenido = document.getElementById("facturaContenido").innerHTML;
+
+  const ventana = window.open("", "_blank", "width=800,height=600");
+  ventana.document.write(`
+    <html>
+      <head>
+        <title>Factura</title>
+        <style>
+          body { font-family: 'Arial', sans-serif; padding: 30px; color: #333; }
+          .factura-box {
+            max-width: 700px;
+            margin: auto;
+            border: 1px solid #eee;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,.15);
+          }
+          .factura-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+          }
+          .factura-header h1 {
+            font-size: 24px;
+            margin: 0;
+            color: #16a34a;
+          }
+          .factura-info {
+            margin-bottom: 20px;
+          }
+          .factura-info p {
+            margin: 4px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+          }
+          table, th, td {
+            border: 1px solid #ccc;
+          }
+          th {
+            background: #16a34a;
+            color: white;
+            padding: 8px;
+            text-align: left;
+          }
+          td {
+            padding: 8px;
+          }
+          .total {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="factura-box">
+          <div class="factura-header">
+            <h1>Nissi Cerrajeria</h1>
+          </div>
+
+          <div class="factura-info">
+            <p><strong>Empresa:</strong> NISSI Cerrajería</p>
+
+          </div>
+
+          ${contenido}
+
+          <div class="footer">
+            <p>Gracias por su compra 💚</p>
+            <p>Esta factura fue generada automáticamente por el sistema.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+  ventana.document.close();
+  ventana.print();
+}
+
+
 </script>
 
 </body>
