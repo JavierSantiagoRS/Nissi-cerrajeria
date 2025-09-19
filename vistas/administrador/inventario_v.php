@@ -37,9 +37,9 @@ $totalPaginas = ceil($totalProductos / $limite);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - NISSI Cerrajería</title>
+    <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../../assets/css/admin/inventario.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="../../assets/bootstrap/js/bootstrap.bundle.js" ></script>
 </head>
 <style>
 .badge {
@@ -503,6 +503,48 @@ $totalPaginas = ceil($totalProductos / $limite);
   font-size: 0.8rem;
   background-color: var(--secondary-blue);
 }
+
+      .inicial-perfil {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    border-radius: 50%;
+    background: #0011ffff; /* azul */
+    color: #ffffffff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+
+    z-index: 2000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .toggle-menu {
+    display: block;
+    cursor: pointer;
+    font-size: 1.5rem;
+    z-index: 2100;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+  }
+}
+
 </style>
 <body>
     <div class="dashboard">
@@ -544,14 +586,27 @@ $totalPaginas = ceil($totalProductos / $limite);
                     <input type="text" placeholder="Buscar...">
                 </div>
                 <div class="user-area">
-                    <div class="notifications">
-                        <i class="far fa-bell"></i>
-                        <span class="notification-count">3</span>
-                    </div>
+                    
                     <div class="user-profile">
-                        <img src="/placeholder.svg?height=40&width=40" alt="Admin">
+                        
                         <span>Admin</span>
-                         <i class="fas fa-chevron-down"></i>
+                                                 <?php if (isset($_SESSION["id_usuario"])): ?>
+            <?php
+            // Traer el nombre de usuario
+            $id_usuario = $_SESSION["id_usuario"];
+            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
+            $res_user = $conn->query($sql_user);
+            $inicial = "?";
+
+            if ($res_user && $res_user->num_rows > 0) {
+                $row_user = $res_user->fetch_assoc();
+                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
+            }
+            ?>               
+                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+        <?php else: ?>
+            <a href="vistas/login.php">Iniciar sesión</a></li>
+        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -653,7 +708,14 @@ $totalPaginas = ceil($totalProductos / $limite);
     </td>
     <td><?= htmlspecialchars($nota['titulo']) ?></td>
     <td><?= htmlspecialchars($nota['contenido']) ?></td>
-    <td><?= number_format($nota['precio'], 0, ',', '.') ?></td>
+    <td>
+    <?php if (!empty($nota['precio'])): ?>
+        <?= number_format($nota['precio'], 0, ',', '.') ?> COP
+    <?php else: ?>
+        <em>Precio a convenir en el chat</em>
+    <?php endif; ?>
+</td>
+
     <td><?= htmlspecialchars($nota['descripcion']) ?></td>
   <td>
     <?php if ($nota['estado'] === 'activo'): ?>
@@ -823,12 +885,20 @@ $totalPaginas = ceil($totalProductos / $limite);
    
 
     <div class="modal-overlay"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="../../assets/js/admin/inventario.js"></script>
-
-   <!-- Asegúrate de tener SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.querySelector(".toggle-menu");
+  const sidebar = document.querySelector(".sidebar");
 
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("active");
+  });
+});
+</script>
 <script>
 function eliminarInventario(id) {
   Swal.fire({

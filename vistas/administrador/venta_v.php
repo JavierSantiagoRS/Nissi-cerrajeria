@@ -65,6 +65,7 @@ $totalPaginas = ceil($totalVentas / $limite);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ventas - NISSI Cerrajería</title>
+    <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../../assets/css/admin/venta.css">
     <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.bundle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -530,6 +531,89 @@ $totalPaginas = ceil($totalVentas / $limite);
   font-size: 0.8rem;
   background-color: var(--secondary-blue);
 }
+
+          .inicial-perfil {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    border-radius: 50%;
+    background: #0011ffff; /* azul */
+    color: #ffffffff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+}
+
+   :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --secondary-color: #f59e0b;
+      --accent-color: #10b981;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-light: #9ca3af;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-tertiary: #f1f5f9;
+      --border-color: #e5e7eb;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+    }
+
+
+ .ver-pedidos-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.ver-pedidos-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+
+    z-index: 2000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .toggle-menu {
+    display: block;
+    cursor: pointer;
+    font-size: 1.5rem;
+    z-index: 2100;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+  }
+}
+
 </style>
 <body>
     <div class="dashboard">
@@ -571,14 +655,27 @@ $totalPaginas = ceil($totalVentas / $limite);
                     <input type="text" placeholder="Buscar...">
                 </div>
                 <div class="user-area">
-                    <div class="notifications">
-                        <i class="far fa-bell"></i>
-                        <span class="notification-count">3</span>
-                    </div>
+                   
                     <div class="user-profile">
-                        <img src="/placeholder.svg?height=40&width=40" alt="Admin">
+                        
                         <span>Admin</span>
-                        <i class="fas fa-chevron-down"></i>
+        <?php if (isset($_SESSION["id_usuario"])): ?>
+            <?php
+            // Traer el nombre de usuario
+            $id_usuario = $_SESSION["id_usuario"];
+            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
+            $res_user = $conn->query($sql_user);
+            $inicial = "?";
+
+            if ($res_user && $res_user->num_rows > 0) {
+                $row_user = $res_user->fetch_assoc();
+                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
+            }
+            ?>               
+                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+        <?php else: ?>
+            <a href="vistas/login.php">Iniciar sesión</a></li>
+        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -668,7 +765,14 @@ $totalPaginas = ceil($totalVentas / $limite);
    <tr data-id="<?= $venta['id'] ?>" data-estado="<?= $venta['estado'] ?>">
         <td><?= htmlspecialchars($venta['nombre_cliente'])?></td>
         <td><?= htmlspecialchars($venta['id_cliente']) ?></td>
-        <td class="price">$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
+       <td>
+    <?php if (!empty($venta['total'])): ?>
+        <?= number_format($venta['total'], 0, ',', '.') ?> COP
+    <?php else: ?>
+        <em>Precio a convenir en chat</em>
+    <?php endif; ?>
+</td>
+
         <td><?= htmlspecialchars(date("d/m/Y H:i A", strtotime($venta['fecha']))) ?></td>
         <td class="estado">
             <span class="badge badge-<?= $venta['estado'] ?>">
@@ -680,10 +784,7 @@ $totalPaginas = ceil($totalVentas / $limite);
             <button class="btn-confirmar btn btn-success btn-sm">Confirmar</button>
             <button class="btn-cancelar btn btn-danger btn-sm">Cancelar</button>
             <button class="btn-eliminar"><i class="fas fa-trash-alt"></i></button>
-            <!-- 👁 Botón ver pedidos (abre modal dinámico) -->
-            <button class="btn-ver-pedidos btn btn-info btn-sm">
-              <i class="fas fa-eye"></i> Ver pedidos
-            </button>
+        
             <!-- 🧾 Botón ver factura -->
             <button class="ver-pedidos-btn" onclick="verFactura(<?= $venta['id'] ?>)">
               <i class="fas fa-file-invoice"></i> Ver factura
@@ -728,38 +829,7 @@ $totalPaginas = ceil($totalVentas / $limite);
 
           
                        
-<!-- Modal mejorado -->
-<div class="modal fade" id="modal-pedidos" tabindex="-1" aria-labelledby="modalPedidosLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg rounded-4 border-0">
-      <div class="modal-header bg-primary text-white rounded-top-4">
-        <h5 class="modal-title fw-bold" id="modalPedidosLabel">🧾 Pedidos de la Venta</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>ID_pedido</th>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-pedidos-body">
-              <!-- Se insertan pedidos aquí -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer bg-light rounded-bottom-4">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 <!-- Modal Factura -->
 <div id="facturaModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
     background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;">
@@ -781,8 +851,19 @@ $totalPaginas = ceil($totalVentas / $limite);
 
 
    <script src="../../assets/js/admin/venta.js"></script>
-   <script src="../../assets\bootstrap\js\bootstrap.js"></script>
+   <script src="../../assets/bootstrap/js/bootstrap.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.querySelector(".toggle-menu");
+  const sidebar = document.querySelector(".sidebar");
+
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("active");
+  });
+});
+</script>
+
    <script>
 
 function verFactura(idVenta) {
@@ -929,7 +1010,6 @@ function imprimirFactura() {
 
           <div class="factura-info">
             <p><strong>Empresa:</strong> NISSI Cerrajería</p>
-            <p><strong>Dirección:</strong> Calle Falsa 123, Neiva, Huila</p>
           </div>
 
           ${contenido}
@@ -1001,11 +1081,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 cancelButtonText: "Cancelar"
             }).then(result => {
                 if (result.isConfirmed) {
-                    fetch("../../controlador/venta_c.php", {
-                        method: "DELETE",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id })
-                    })
+                   fetch("../../controlador/venta_c.php", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "delete", id })
+})
+
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {

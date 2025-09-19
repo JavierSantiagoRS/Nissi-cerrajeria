@@ -31,6 +31,7 @@ $totalPaginas = ceil($totalPedidos / $limite);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedidos - NISSI Cerrajería</title>
+    <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../../assets/css/admin/pedido.css">
     <link rel="stylesheet" href="../../assets/bootstrap/css/bootstrap.bundle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -369,6 +370,47 @@ $totalPaginas = ceil($totalPedidos / $limite);
                 gap: 1rem;
             }
         }
+
+              .inicial-perfil {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    border-radius: 50%;
+    background: #0011ffff; /* azul */
+    color: #ffffffff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+
+    z-index: 2000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .toggle-menu {
+    display: block;
+    cursor: pointer;
+    font-size: 1.5rem;
+    z-index: 2100;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+  }
+}
 </style>
 <body>
     <div class="dashboard">
@@ -410,14 +452,27 @@ $totalPaginas = ceil($totalPedidos / $limite);
                     <input type="text" placeholder="Buscar...">
                 </div>
                 <div class="user-area">
-                    <div class="notifications">
-                        <i class="far fa-bell"></i>
-                        <span class="notification-count">3</span>
-                    </div>
+                    
                     <div class="user-profile">
-                        <img src="/placeholder.svg?height=40&width=40" alt="Admin">
+                        
                         <span>Admin</span>
-                        <i class="fas fa-chevron-down"></i>
+                                                                    <?php if (isset($_SESSION["id_usuario"])): ?>
+            <?php
+            // Traer el nombre de usuario
+            $id_usuario = $_SESSION["id_usuario"];
+            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
+            $res_user = $conn->query($sql_user);
+            $inicial = "?";
+
+            if ($res_user && $res_user->num_rows > 0) {
+                $row_user = $res_user->fetch_assoc();
+                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
+            }
+            ?>               
+                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+        <?php else: ?>
+            <a href="vistas/login.php">Iniciar sesión</a></li>
+        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -466,7 +521,14 @@ $totalPaginas = ceil($totalPedidos / $limite);
             <td><?= htmlspecialchars($p['nombre_item']) ?></td>
             <td><?= $p['tipo'] ?></td>
             <td><?= $p['cantidad'] ?></td>
-            <td><?= number_format($p['subtotal'], 0, ',', '.') ?> COP</td>
+            <td>
+    <?php if (!empty($p['subtotal'])): ?>
+        <?= number_format($p['subtotal'], 0, ',', '.') ?> COP
+    <?php else: ?>
+        <em>Precio a convenir en chat</em>
+    <?php endif; ?>
+</td>
+
             <td><?= htmlspecialchars(date("d/m/Y H:i A", strtotime($p['fecha']))) ?></td>
 
         </tr>
@@ -506,5 +568,16 @@ $totalPaginas = ceil($totalPedidos / $limite);
     <div class="modal-overlay"></div>
 
    <script src="../../assets/js/admin/pedido.js"></script>
+      <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const toggleBtn = document.querySelector(".toggle-menu");
+  const sidebar = document.querySelector(".sidebar");
+
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("active");
+  });
+});
+</script>
+
 </body>
 </html>

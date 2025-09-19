@@ -33,6 +33,7 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NISSI Cerrajería - Compras del Cliente</title>
+  <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -655,7 +656,15 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
         </button>
       <?php endif; ?>
     </td>
-    <td class="price">$<?= number_format($venta['total'], 0, ',', '.') ?> COP</td>
+    <td class="price">
+
+  <?php if (!empty($venta['total'])): ?>
+        <?= number_format($venta['total'], 0, ',', '.') ?> COP
+    <?php else: ?>
+        <em>Precio a convenir en chat</em>
+    <?php endif; ?>
+
+    </td>
     <td>
       <span class="status-badge status-<?= strtolower($venta['estado']) ?>">
         <?= ucfirst($venta['estado']) ?>
@@ -681,7 +690,11 @@ $total_confirmadas_pendientes = count($ventas_confirmadas) + count($ventas_pendi
               <td><?= htmlspecialchars($pedido['nombre_item']) ?></td>
               <td><?= $pedido['cantidad'] ?></td>
               <td><?= ucfirst($pedido['tipo']) ?></td>
-              <td class="price">$<?= number_format($pedido['subtotal'], 0, ',', '.') ?> COP</td>
+              <td class="price">  <?php if (!empty($venta['total'])): ?>
+        <?= number_format($venta['total'], 0, ',', '.') ?> COP
+    <?php else: ?>
+        <em>Precio a convenir en chat</em>
+    <?php endif; ?></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

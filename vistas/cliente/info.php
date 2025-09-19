@@ -46,6 +46,7 @@ $total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NISSI Cerrajería - Información del Cliente</title>
+  <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -612,15 +613,19 @@ $total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
     </div>
   </div>
 
-  <div class="info-item">
-    <div class="info-icon">
-      <i class="fas fa-phone"></i>
-    </div>
-    <div class="info-content">
-      <div class="info-label">Teléfono</div>
-      <div class="info-value">+57 <?= htmlspecialchars($usuario['celular']) ?></div>
-    </div>
+ <div class="info-item">
+  <div class="info-icon">
+    <i class="fas fa-phone"></i>
   </div>
+  <div class="info-content">
+    <div class="info-label">Teléfono</div>
+    <div class="info-value">+57 <?= htmlspecialchars($usuario['celular']) ?></div>
+    <button type="button" id="btn-editar-telefono" style="margin-top:5px; padding:0.25rem 0.5rem; font-size:0.75rem; background:var(--primary-color); color:white; border:none; border-radius:4px; cursor:pointer;">
+      Editar
+    </button>
+  </div>
+</div>
+
 
   <div class="info-item">
     <div class="info-icon">
@@ -671,7 +676,7 @@ $total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
 <div id="modal-direccion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
   <div style="background:white; padding:2rem; border-radius:var(--radius-lg); max-width:500px; width:90%; position:relative;">
     <h2 style="margin-bottom:1rem;">Editar Dirección</h2>
-    <form id="form-direccion" method="POST" action="../../controlador/actualizar_direccion_c.php">
+    <form id="form-direccion" method="POST" action="../../controlador/actualizar_datos_c.php">
       <label for="calle" style="font-weight:600; margin-top:0.5rem;">Calle y número</label>
       <input type="text" name="calle" id="calle" value="<?= htmlspecialchars($usuario['calle'] ?? '') ?>" required
         style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
@@ -696,6 +701,22 @@ $total_ventas = $conn->query($sql_ventas_confirmadas)->fetch_assoc()['total'];
   </div>
 </div>
 
+<!-- Modal Teléfono -->
+<div id="modal-telefono" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:white; padding:2rem; border-radius:var(--radius-lg); max-width:400px; width:90%; position:relative;">
+    <h2 style="margin-bottom:1rem;">Editar Teléfono</h2>
+    <form id="form-telefono" method="POST" action="../../controlador/actualizar_datos_c.php">
+      <label for="celular" style="font-weight:600; margin-top:0.5rem;">Número de celular</label>
+      <input type="text" name="celular" id="celular" value="<?= htmlspecialchars($usuario['celular'] ?? '') ?>" required maxlength="15"
+        style="width:100%; padding:0.5rem; margin-bottom:0.5rem; border:1px solid var(--border-color); border-radius:var(--radius-sm);">
+
+      <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button type="button" id="btn-cerrar-modal-tel" style="padding:0.5rem 1rem; border:none; background:#ef4444; color:white; border-radius:5px; cursor:pointer;">Cancelar</button>
+        <button type="submit" style="padding:0.5rem 1rem; border:none; background:var(--primary-color); color:white; border-radius:5px; cursor:pointer;">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 
 <script>
@@ -715,6 +736,23 @@ btnCerrar.addEventListener('click', () => {
 window.addEventListener('click', (e) => {
     if (e.target === modal) modal.style.display = 'none';
 });
+
+const modalTel = document.getElementById('modal-telefono');
+const btnEditarTel = document.getElementById('btn-editar-telefono');
+const btnCerrarTel = document.getElementById('btn-cerrar-modal-tel');
+
+btnEditarTel.addEventListener('click', () => {
+    modalTel.style.display = 'flex';
+});
+
+btnCerrarTel.addEventListener('click', () => {
+    modalTel.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modalTel) modalTel.style.display = 'none';
+});
+
 </script>
 
 

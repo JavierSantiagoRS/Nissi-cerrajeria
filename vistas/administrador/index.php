@@ -61,6 +61,7 @@ $ingresos_total = $conn->query($sql_ingresos_total)->fetch_assoc()['total'] ?? 0
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administrador - NISSI Cerrajería</title>
+    <link rel="../../assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
     <link rel="stylesheet" href="../../assets/css/admin/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -529,6 +530,19 @@ $ingresos_total = $conn->query($sql_ingresos_total)->fetch_assoc()['total'] ?? 0
                 justify-content: center;
             }
         }
+
+        .inicial-perfil {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    border-radius: 50%;
+    background: #0011ffff; /* azul */
+    color: #ffffffff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 16px;
+}
     </style>
 </head>
 <body>
@@ -567,14 +581,29 @@ $ingresos_total = $conn->query($sql_ingresos_total)->fetch_assoc()['total'] ?? 0
                     <button><i class="fas fa-search"></i></button>
                 </div>
                 <div class="user-info">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
+                    
                     <div class="user">
                         <span>Admin</span>
-                        <img src="/placeholder.svg?height=40&width=40" alt="Usuario">
-                        <i class="fas fa-chevron-down"></i>
+                      
+                         <?php if (isset($_SESSION["id_usuario"])): ?>
+            <?php
+            // Traer el nombre de usuario
+            $id_usuario = $_SESSION["id_usuario"];
+            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
+            $res_user = $conn->query($sql_user);
+            $inicial = "?";
+
+            if ($res_user && $res_user->num_rows > 0) {
+                $row_user = $res_user->fetch_assoc();
+                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
+            }
+            ?>               
+                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+        <?php else: ?>
+            <a href="vistas/login.php">Iniciar sesión</a></li>
+        <?php endif; ?>
+
+                     
                     </div>
                 </div>
             </header>
