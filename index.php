@@ -1,14 +1,48 @@
 <?php
+declare(strict_types=1);
+
 session_start();
 
 // Recuperar el id del usuario desde la sesión
-$id_usuario = $_SESSION['id_usuario'] ?? 0; // 0 si no existe
-include 'conexion.php';
-include 'controlador/buzon_c.php';
+$id_usuario = isset($_SESSION['id_usuario']) ? (int) $_SESSION['id_usuario'] : 0;
+require_once __DIR__ . '/conexion.php';
+require_once __DIR__ . '/controlador/buzon_c.php';
+
+function fetchAllRows(mysqli $conn, string $sql, string $types = '', array $params = []): array
+{
+    $statement = $conn->prepare($sql);
+
+    if ($types !== '' && $params !== []) {
+        $statement->bind_param($types, ...$params);
+    }
+
+    $statement->execute();
+    $result = $statement->get_result();
+    $rows = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    $statement->close();
+
+    return $rows;
+}
+
+$usuarioLogueado = $id_usuario > 0;
+$inicialUsuario = '?';
+
+if ($usuarioLogueado) {
+    $usuarioRows = fetchAllRows(
+        $conn,
+        'SELECT usuario FROM usuarios WHERE id = ? LIMIT 1',
+        'i',
+        [$id_usuario]
+    );
+
+    if ($usuarioRows !== []) {
+        $inicialUsuario = strtoupper(substr((string) $usuarioRows[0]['usuario'], 0, 1));
+    }
+}
 
 // Obtener IP y User Agent
-$ip = $_SERVER['REMOTE_ADDR'];
-$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 // Revisar si ya hay visita de este dispositivo en esta hora
 $sql = "SELECT id 
@@ -23,16 +57,42 @@ $stmt->bind_param("ss", $ip, $userAgent);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if ($result->num_rows == 0) {
+if ($result->num_rows === 0) {
     // Insertar nueva visita (única por hora)
     $sqlInsert = "INSERT INTO visitas (fecha, ip, user_agent) VALUES (NOW(), ?, ?)";
     $stmtInsert = $conn->prepare($sqlInsert);
     $stmtInsert->bind_param("ss", $ip, $userAgent);
     $stmtInsert->execute();
+    $stmtInsert->close();
 }
 
-$sql = "SELECT * FROM inventario WHERE estado = 'activo' LIMIT 3";
-$result = $conn->query($sql);
+$stmt->close();
+
+$productosDestacados = fetchAllRows(
+    $conn,
+    "SELECT * FROM inventario WHERE estado = ? LIMIT 3",
+    's',
+    ['activo']
+);
+
+$serviciosDestacados = fetchAllRows(
+    $conn,
+    "SELECT * FROM servicios WHERE estado = ? LIMIT 2",
+    's',
+    ['activo']
+);
+
+$serviciosFormulario = fetchAllRows(
+    $conn,
+    'SELECT nombre FROM servicios ORDER BY nombre ASC'
+);
+
+$serviciosFooter = fetchAllRows(
+    $conn,
+    "SELECT id, nombre FROM servicios WHERE estado = ? LIMIT 5",
+    's',
+    ['activo']
+);
 ?>
 
 <!DOCTYPE html>
@@ -41,7 +101,7 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NISSI Cerrajería - Servicios de Cerrajería Profesional</title>
-    <link rel="assets\img\logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
+    <link rel="assets/img/logo2.jpeg" href="assets/img/icono.svg" type="image/svg+xml">
     <link rel="stylesheet" href="assets/css/cliente.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -674,22 +734,10 @@ $result = $conn->query($sql);
         <li><a href="#galeria">Productos</a></li>
         <li><a href="#contacto">Contacto</a></li>
         
-        <?php if (isset($_SESSION["id_usuario"])): ?>
-            <?php
-            // Traer el nombre de usuario
-            $id_usuario = $_SESSION["id_usuario"];
-            $sql_user = "SELECT usuario FROM usuarios WHERE id = $id_usuario";
-            $res_user = $conn->query($sql_user);
-            $inicial = "?";
-
-            if ($res_user && $res_user->num_rows > 0) {
-                $row_user = $res_user->fetch_assoc();
-                $inicial = strtoupper(substr($row_user["usuario"], 0, 1)); // inicial
-            }
-            ?>
+        <?php if ($usuarioLogueado): ?>
             <li>
                 <a href="vistas/cliente/index.php" class="perfil-icon">
-                    <span class="inicial-perfil"><?php echo $inicial; ?></span>
+                    <span class="inicial-perfil"><?php echo htmlspecialchars($inicialUsuario, ENT_QUOTES, 'UTF-8'); ?></span>
                 </a>
             </li>
         <?php else: ?>
@@ -784,11 +832,8 @@ $result = $conn->query($sql);
 
     <div class="services-grid">
  <?php
-$sql = "SELECT * FROM servicios WHERE estado = 'activo' LIMIT 2";
-$resultado = $conn->query($sql);
-
-if ($resultado && $resultado->num_rows > 0) {
-    while ($servicio = $resultado->fetch_assoc()) {
+if ($serviciosDestacados !== []) {
+    foreach ($serviciosDestacados as $servicio) {
         // ID único para el formulario
         $formId = 'form-' . $servicio["id"];
         
@@ -921,8 +966,8 @@ $mensaje = "Hola, soy el usuario *#{$id_usuario}* y estoy interesado en su servi
         </div>
         <div class="gallery-grid">
 <?php
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
+if ($productosDestacados !== []) {
+    foreach ($productosDestacados as $row) {
         $id     = (int)$row['id'];
         $titulo = htmlspecialchars($row['titulo'], ENT_QUOTES, 'UTF-8');
         $precio = (int)$row['precio'];
@@ -1037,14 +1082,11 @@ if ($result->num_rows > 0) {
     <div class="form-group">
         <label for="service">Servicio que necesita</label>
         <?php
-        $sql = "SELECT * FROM servicios";
-        $resultado = $conn->query($sql);
-
-        if ($resultado && $resultado->num_rows > 0) {
+        if ($serviciosFormulario !== []) {
             echo '<select id="service" name="servicio" >';
             echo '<option value="">Seleccionar</option>';
-            while ($servicio = $resultado->fetch_assoc()) {
-                echo '<option value="' . htmlspecialchars($servicio["nombre"]) . '">' . htmlspecialchars($servicio["nombre"]) . '</option>';
+            foreach ($serviciosFormulario as $servicio) {
+                echo '<option value="' . htmlspecialchars($servicio["nombre"], ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($servicio["nombre"], ENT_QUOTES, 'UTF-8') . '</option>';
             }
             echo '<option value="Otro">Otro</option>';
             echo '</select>';
@@ -1100,15 +1142,12 @@ if ($result->num_rows > 0) {
                 <div class="footer-services">
                     <h3>Servicios</h3>
                    <?php
-$sql = "SELECT * FROM servicios WHERE estado = 'activo' LIMIT 5";
-$resultado = $conn->query($sql);
-
-if ($resultado && $resultado->num_rows > 0) {
+if ($serviciosFooter !== []) {
     echo '<ul>';
-    while ($servicio = $resultado->fetch_assoc()) {
+    foreach ($serviciosFooter as $servicio) {
         echo '<li>';
-        echo '<a href="servicios.php" id="' . $servicio["id"] . '">';
-        echo htmlspecialchars($servicio["nombre"]);
+        echo '<a href="servicios.php" id="' . (int) $servicio["id"] . '">';
+        echo htmlspecialchars($servicio["nombre"], ENT_QUOTES, 'UTF-8');
         echo '</a>';
         echo '</li>';
     }
@@ -1453,7 +1492,7 @@ Swal.fire({
 }
 
 function enviarYRedirigirWhatsApp(formId, urlWA) {
-    const usuarioLogueado = <?php echo isset($_SESSION['id_usuario']) ? 'true' : 'false'; ?>;
+    const usuarioLogueado = <?php echo $usuarioLogueado ? 'true' : 'false'; ?>;
     
     if (!usuarioLogueado) {
         Swal.fire({

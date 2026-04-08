@@ -1,4 +1,6 @@
 <?php
+include_once __DIR__ . '/inventario_m.php';
+
 function obtenerVentasPaginadas($conn, $inicio, $limite, $filtro = 'fecha_desc', $estado = '') {
     $where = " WHERE 1=1 ";
     if (!empty($estado)) {
@@ -73,6 +75,8 @@ function actualizarEstadoVenta($conn, $id_venta, $nuevo_estado) {
             $update->bind_param("ii", $cantidad, $id_producto);
             $update->execute();
             $update->close();
+
+            sincronizarEstadoInventarioPorStock($conn, $id_producto);
         }
         $stmt->close();
     }
@@ -95,6 +99,8 @@ function actualizarEstadoVenta($conn, $id_venta, $nuevo_estado) {
             $update->bind_param("ii", $cantidad, $id_producto);
             $update->execute();
             $update->close();
+
+            sincronizarEstadoInventarioPorStock($conn, $id_producto);
         }
         $stmt->close();
     }

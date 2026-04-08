@@ -1,18 +1,20 @@
 <?php
+declare(strict_types=1);
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
 $host = 'localhost';
 $dbname = 'bd_cerrajeria';
 $username = 'root';
 $password = '';
 
-$conn = mysqli_connect($host, $username, $password, $dbname);
-
-if (!$conn) {
-    die('Error de conexión: ' . mysqli_connect_error());
-}
-
-// ✅ Ajustar zona horaria en PHP
 date_default_timezone_set('America/Bogota');
 
-// ✅ Ajustar zona horaria en MySQL
-mysqli_query($conn, "SET time_zone = '-05:00'");
-?>
+try {
+    $conn = new mysqli($host, $username, $password, $dbname);
+    $conn->set_charset('utf8mb4');
+    $conn->query("SET time_zone = '-05:00'");
+} catch (mysqli_sql_exception $exception) {
+    http_response_code(500);
+    exit('No fue posible establecer la conexion con la base de datos.');
+}

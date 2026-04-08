@@ -1,4 +1,16 @@
 <?php
+function sincronizarEstadoInventarioPorStock($conn, $id) {
+    $sql = "UPDATE inventario
+            SET estado = CASE
+                WHEN contenido <= 0 THEN 'inactivo'
+                ELSE 'activo'
+            END
+            WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+}
+
 function obtenerinventario($conn) {
     $sql = "SELECT * FROM inventario";
     $stmt = $conn->prepare($sql);
@@ -74,6 +86,8 @@ function crearinventario($conn, $data) {
         $data['descripcion']
     );
     $stmt->execute();
+    $idInventario = $conn->insert_id;
+    sincronizarEstadoInventarioPorStock($conn, $idInventario);
 }
 
 function actualizarinventario($conn, $data) {
@@ -89,6 +103,7 @@ function actualizarinventario($conn, $data) {
         $data['id']
     );
     $stmt->execute();
+    sincronizarEstadoInventarioPorStock($conn, $data['id']);
 }
 
 function eliminarinventario($conn, $id) {
